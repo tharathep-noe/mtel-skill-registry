@@ -1,0 +1,86 @@
+{
+  "frontend": {
+    "nextjs": {
+      "match": [
+        "nextjs",
+        "next.js",
+        "next"
+      ],
+      "requires": [
+        "react"
+      ],
+      "version": "1.0.0",
+      "path": "skills/frontend/nextjs"
+    },
+    "react": {
+      "match": [
+        "react",
+        "reactjs",
+        "react.js"
+      ],
+      "requires": [],
+      "version": "1.0.0",
+      "path": "skills/frontend/react"
+    },
+    "tailwind": {
+      "match": [
+        "tailwind",
+        "tailwindcss"
+      ],
+      "requires": [],
+      "version": "1.0.0",
+      "path": "skills/frontend/tailwind"
+    }
+  },
+  "backend": {
+    "express": {
+      "match": [
+        "express",
+        "expressjs",
+        "express.js"
+      ],
+      "requires": [],
+      "version": "1.0.0",
+      "path": "skills/backend/express"
+    },
+    "nestjs": {
+      "match": [
+        "nestjs",
+        "nest.js",
+        "nest"
+      ],
+      "requires": [],
+      "version": "1.0.0",
+      "path": "skills/backend/nestjs"
+    },
+    "prisma": {
+      "match": [
+        "prisma"
+      ],
+      "requires": [],
+      "version": "1.0.0",
+      "path": "skills/backend/prisma"
+    }
+  },
+  "database": {
+    "postgres": {
+      "match": [
+        "postgres",
+        "postgresql"
+      ],
+      "requires": [],
+      "version": "1.0.0",
+      "path": "skills/database/postgres"
+    },
+    "supabase": {
+      "match": [
+        "supabase"
+      ],
+      "requires": [
+        "postgres"
+      ],
+      "version": "1.0.0",
+      "path": "skills/database/supabase"
+    }
+  }
+}

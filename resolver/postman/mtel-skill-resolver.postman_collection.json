@@ -1,0 +1,173 @@
+{
+  "info": {
+    "name": "mtel-skill-resolver (MCP)",
+    "description": "Manual testing for the mtel-skill-resolver MCP server over its Streamable HTTP transport (resolver/http.js).\n\nStart the server first:\n    cd resolver && PORT=3939 npm run start:http\n\nThen adjust the `baseUrl` collection variable if you used a different port.\n\nKEY GOTCHAS\n- The /mcp endpoint REQUIRES `Accept: application/json, text/event-stream`. Without text/event-stream you get 406 Not Acceptable.\n- Responses come back as Server-Sent Events (text/event-stream), not plain JSON. The payload is on the `data:` line, and the matched skills are JSON stringified inside result.content[0].text (double-encoded, an MCP convention). The test scripts below parse both layers and log the result to the Postman Console (View > Show Postman Console).\n- If you start the server with MCP_AUTH_TOKEN set, put that value in the `authToken` variable and enable the Authorization header on the /mcp requests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3939",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health check (GET /health)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        },
+        "description": "Plain REST liveness probe (not MCP). Expects {\"status\":\"ok\",...}. Stays open even when MCP_AUTH_TOKEN is set."
+      },
+      "response": []
+    },
+    {
+      "name": "Skill catalog (GET /bundle.json)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', () => pm.response.to.have.status(200));",
+              "const b = pm.response.json();",
+              "console.log('schemaVersion', b.schemaVersion, '| count', b.count);",
+              "console.log('skills:', (b.skills || []).map(s => s.category + '/' + s.name));",
+              "pm.test('bundle has skills with bodies', () => {",
+              "  pm.expect(b.skills).to.be.an('array').that.is.not.empty;",
+              "  pm.expect(b.skills[0]).to.have.property('body');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}",
+            "disabled": true,
+            "description": "Enable only if the server was started with MCP_AUTH_TOKEN (the bundle is gated the same as /mcp)."
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/bundle.json",
+          "host": ["{{baseUrl}}"],
+          "path": ["bundle.json"]
+        },
+        "description": "Static skill catalog: metadata + each skill's full markdown body. Plain JSON (not SSE). A client can fetch this once and let the user pick which skills to write into .claude/skills/ without cloning the registry. 404s until `npm run build` has generated bundle.json."
+      },
+      "response": []
+    },
+    {
+      "name": "MCP: tools/list",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// The MCP Streamable HTTP transport replies with SSE. Pull the JSON off the `data:` line.",
+              "const body = pm.response.text();",
+              "const dataLine = body.split('\\n').find(l => l.startsWith('data:'));",
+              "pm.test('got an SSE data line', () => pm.expect(dataLine, 'no data: line in response').to.be.a('string'));",
+              "if (!dataLine) { console.log('Raw response:', body); return; }",
+              "const rpc = JSON.parse(dataLine.slice('data:'.length).trim());",
+              "pm.test('no JSON-RPC error', () => pm.expect(rpc.error, JSON.stringify(rpc.error)).to.be.undefined);",
+              "const tools = (rpc.result && rpc.result.tools) || [];",
+              "console.log('Tools:', tools.map(t => t.name));",
+              "console.log(JSON.stringify(tools, null, 2));",
+              "pm.test('resolve_skills is advertised', () => pm.expect(tools.map(t => t.name)).to.include('resolve_skills'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json, text/event-stream" },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}",
+            "disabled": true,
+            "description": "Enable only if the server was started with MCP_AUTH_TOKEN."
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"tools/list\",\n  \"params\": {}\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/mcp",
+          "host": ["{{baseUrl}}"],
+          "path": ["mcp"]
+        },
+        "description": "Lists the tools the server exposes, with their input JSON-Schema. This is what an MCP client reads to know resolve_skills exists and what arguments it takes."
+      },
+      "response": []
+    },
+    {
+      "name": "MCP: tools/call resolve_skills",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Parse the two encoding layers: SSE data: line -> JSON-RPC -> stringified tool text.",
+              "const body = pm.response.text();",
+              "const dataLine = body.split('\\n').find(l => l.startsWith('data:'));",
+              "pm.test('got an SSE data line', () => pm.expect(dataLine, 'no data: line in response').to.be.a('string'));",
+              "if (!dataLine) { console.log('Raw response:', body); return; }",
+              "const rpc = JSON.parse(dataLine.slice('data:'.length).trim());",
+              "pm.test('no JSON-RPC error', () => pm.expect(rpc.error, JSON.stringify(rpc.error)).to.be.undefined);",
+              "const text = rpc.result && rpc.result.content && rpc.result.content[0] && rpc.result.content[0].text;",
+              "pm.test('tool returned text content', () => pm.expect(text, 'no content[0].text').to.be.a('string'));",
+              "if (!text) return;",
+              "const payload = JSON.parse(text);",
+              "console.log('Matched skills:');",
+              "console.log(JSON.stringify(payload.matched, null, 2));",
+              "pm.test('matched is an array', () => pm.expect(payload.matched).to.be.an('array'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json, text/event-stream" },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}",
+            "disabled": true,
+            "description": "Enable only if the server was started with MCP_AUTH_TOKEN."
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"resolve_skills\",\n    \"arguments\": {\n      \"keywords\": [\"nextjs\", \"supabase\"]\n    }\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/mcp",
+          "host": ["{{baseUrl}}"],
+          "path": ["mcp"]
+        },
+        "description": "Calls the resolve_skills tool. Edit the `keywords` array in the body to try different stacks. Transitive requires are pulled in automatically (e.g. nextjs -> react, supabase -> postgres). The parsed result is logged to the Postman Console."
+      },
+      "response": []
+    }
+  ]
+}

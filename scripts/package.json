@@ -1,0 +1,15 @@
+{
+  "name": "mtel-skill-registry-scripts",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "description": "Build tooling for mtel-skill-registry (index + bundle generation)",
+  "scripts": {
+    "build": "node generate-index.js && node build-bundle.js",
+    "generate-index": "node generate-index.js",
+    "build-bundle": "node build-bundle.js"
+  },
+  "dependencies": {
+    "gray-matter": "^4.0.3"
+  }
+}

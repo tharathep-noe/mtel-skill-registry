@@ -1,0 +1,23 @@
+{
+  "should_fire": [
+    "create a new Next.js project with Tailwind and Supabase",
+    "scaffold a new app",
+    "set up a new repo for a NestJS API",
+    "init project using express and prisma",
+    "start a new nextjs project",
+    "scaffold a fullstack project with nextjs, tailwind, and supabase",
+    "set up a new monorepo with Express and Postgres",
+    "create a brand new React app",
+    "bootstrap a new project with NestJS and Prisma"
+  ],
+  "should_not_fire": [
+    "how do I add authentication to my existing project",
+    "what's the project structure looking like",
+    "fix the bug in the user service",
+    "add a new API route to the current app",
+    "can you review my project setup",
+    "let's refactor the auth module",
+    "why is this query slow in production",
+    "add tests for the existing user service"
+  ]
+}

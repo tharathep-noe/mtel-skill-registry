@@ -1,0 +1,24 @@
+# Dependencies (resolver/ and scripts/ each have their own)
+node_modules/
+
+# Environment / secrets (e.g. MCP_AUTH_TOKEN, REGISTRY_TOKEN)
+.env
+.env.*
+!.env.example
+
+# Logs & debug output
+*.log
+npm-debug.log*
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Note: index.json and bundle.json are GENERATED but intentionally committed
+# (the resolver reads index.json; clients fetch bundle.json). Regenerate with
+# `cd scripts && npm run build`. Do not add them here.
+#
+# package-lock.json files are also committed on purpose — do not ignore them.

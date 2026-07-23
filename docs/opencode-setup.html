@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenCode — mtel-skill-resolver setup</title>
+  <!--#style-->
+</head>
+<body>
+<main>
+  <nav>
+    <a href="/claude-setup">Claude Code</a>
+    <a href="/opencode-setup" class="active">OpenCode</a>
+    <a href="/codex-setup">Codex</a>
+  </nav>
+
+  <h1>OpenCode setup</h1>
+  <p class="lede">Connect OpenCode to the central <code>mtel-skill-resolver</code> MCP server as a remote server.</p>
+
+  <h2>1. Edit config</h2>
+  <p>Add an entry under <code>mcp</code> in <code>opencode.json</code> (project root) or <code>~/.config/opencode/opencode.json</code> (global):</p>
+  <pre><code>{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "mtel-skill-resolver": {
+      "type": "remote",
+      "url": "https://mcp-registry.internal.company.com/mcp",
+      "enabled": true
+    }
+  }
+}</code></pre>
+
+  <h2>2. With auth token</h2>
+  <p>If the server sets <code>MCP_AUTH_TOKEN</code>, add the bearer header:</p>
+  <pre><code>{
+  "mcp": {
+    "mtel-skill-resolver": {
+      "type": "remote",
+      "url": "https://mcp-registry.internal.company.com/mcp",
+      "enabled": true,
+      "headers": {
+        "Authorization": "Bearer &lt;token&gt;"
+      }
+    }
+  }
+}</code></pre>
+
+  <h2>3. Verify</h2>
+  <p>Restart OpenCode. The <code>resolve_skills</code> tool from <code>mtel-skill-resolver</code> appears in the available tools list. Run <code>/mcp</code> in the TUI to confirm the server connected.</p>
+
+  <div class="note">
+    Use <code>"type": "local"</code> with a <code>command</code> array instead if you want each machine to spawn <code>resolver/index.js</code> over stdio rather than hitting the central HTTP server.
+  </div>
+
+  <footer>mtel-skill-registry · resolver over Streamable HTTP</footer>
+</main>
+</body>
+</html>

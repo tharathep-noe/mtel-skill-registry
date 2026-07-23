@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Claude Code — mtel-skill-resolver setup</title>
+  <!--#style-->
+</head>
+<body>
+<main>
+  <nav>
+    <a href="/claude-setup" class="active">Claude Code</a>
+    <a href="/opencode-setup">OpenCode</a>
+    <a href="/codex-setup">Codex</a>
+  </nav>
+
+  <h1>Claude Code setup</h1>
+  <p class="lede">Connect Claude Code to the central <code>mtel-skill-resolver</code> MCP server.</p>
+
+  <h2>1. Add the server</h2>
+  <p>Run this once (drop <code>--scope user</code> to add it only to the current project):</p>
+  <pre><code>claude mcp add --transport http --scope user \
+  mtel-skill-resolver https://mcp-registry.internal.company.com/mcp</code></pre>
+
+  <p>If the server is protected with <code>MCP_AUTH_TOKEN</code>, pass the bearer header:</p>
+  <pre><code>claude mcp add --transport http --scope user \
+  --header "Authorization: Bearer &lt;token&gt;" \
+  mtel-skill-resolver https://mcp-registry.internal.company.com/mcp</code></pre>
+
+  <h2>2. Or edit config directly</h2>
+  <p>Add to your project's <code>.mcp.json</code> (or the user-level config):</p>
+  <pre><code>{
+  "mcpServers": {
+    "mtel-skill-resolver": {
+      "type": "http",
+      "url": "https://mcp-registry.internal.company.com/mcp"
+    }
+  }
+}</code></pre>
+
+  <h2>3. Verify</h2>
+  <pre><code>claude mcp list        # shows mtel-skill-resolver ✓ Connected</code></pre>
+  <p>Inside Claude Code, the <code>resolve_skills</code> tool is now available. The <code>init-project</code> flow will call it automatically when detecting your tech stack.</p>
+
+  <div class="note">
+    The resolver is stateless — no login/session required beyond the optional bearer token. Health check: <code>GET /health</code>.
+  </div>
+
+  <footer>mtel-skill-registry · resolver over Streamable HTTP</footer>
+</main>
+</body>
+</html>

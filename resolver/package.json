@@ -1,0 +1,17 @@
+{
+  "name": "mtel-skill-resolver",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "MCP server for resolving skills from mtel-skill-registry",
+  "scripts": {
+    "start": "node index.js",
+    "start:http": "node http.js",
+    "test": "node ../tests/resolver.test.js",
+    "inspect": "npx @modelcontextprotocol/inspector node index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "express": "^5.0.0"
+  }
+}
