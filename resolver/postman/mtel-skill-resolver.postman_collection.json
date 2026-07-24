@@ -43,9 +43,11 @@
               "const b = pm.response.json();",
               "console.log('schemaVersion', b.schemaVersion, '| count', b.count);",
               "console.log('skills:', (b.skills || []).map(s => s.category + '/' + s.name));",
-              "pm.test('bundle has skills with bodies', () => {",
+              "pm.test('catalog entries carry selection metadata', () => {",
               "  pm.expect(b.skills).to.be.an('array').that.is.not.empty;",
-              "  pm.expect(b.skills[0]).to.have.property('body');",
+              "  pm.expect(b.skills[0]).to.have.property('description');",
+              "  pm.expect(b.skills[0]).to.have.property('useWhen');",
+              "  pm.expect(b.skills[0]).to.have.property('doNotUseWhen');",
               "});"
             ]
           }
@@ -66,7 +68,7 @@
           "host": ["{{baseUrl}}"],
           "path": ["bundle.json"]
         },
-        "description": "Static skill catalog: metadata + each skill's full markdown body. Plain JSON (not SSE). A client can fetch this once and let the user pick which skills to write into .claude/skills/ without cloning the registry. 404s until `npm run build` has generated bundle.json."
+        "description": "Static skill *selection catalog*: metadata + a short description and useWhen/doNotUseWhen guidance per skill — NO full bodies (kept lightweight so a consumer can choose skills cheaply). Plain JSON (not SSE). The body is fetched on demand afterwards. 404s until `npm run build` has generated bundle.json."
       },
       "response": []
     },

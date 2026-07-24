@@ -1,6 +1,6 @@
 {
-  "schemaVersion": 1,
-  "generatedAt": "2026-07-23T02:01:02.806Z",
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-23T02:32:22.275Z",
   "count": 8,
   "skills": [
     {
@@ -16,7 +16,15 @@
         "react"
       ],
       "version": "1.0.0",
-      "body": "# Next.js Skill\n\nCompany conventions for Next.js projects.\n\n## Project structure\n\n```\napp/\n  (marketing)/\n    page.tsx          # Public landing routes\n  (dashboard)/\n    layout.tsx        # Authenticated layout\n    page.tsx          # Dashboard home\n  api/                # Route handlers (App Router)\n    trpc/\n      [trpc]/\n        route.ts\nlib/                  # Shared utilities\n  db.ts\n  auth.ts\ncomponents/           # Shared UI components\n  ui/                 # Primitive components (button, input, etc.)\nproviders/            # React context providers\n```\n\n## Routing\n\n- Use App Router exclusively (no `pages/`)\n- Route groups `(group)` for layout segmentation, not for URL structure\n- Server Components by default; add `'use client'` only when needed\n\n## Data fetching\n\n- Prefer server-side data fetching in Server Components\n- Use `fetch()` with Next.js caching: `cache: 'force-cache'` for static, `cache: 'no-store'` for dynamic\n- Use tRPC for authenticated client-server interactions\n\n## Styling\n\n- Tailwind CSS for all styling\n- Use `cn()` utility from `clsx` + `tailwind-merge` for conditional classes"
+      "description": "Company conventions for Next.js (App Router) applications.",
+      "useWhen": [
+        "Building or extending a Next.js application",
+        "Working with the App Router, server components, routing, or data fetching"
+      ],
+      "doNotUseWhen": [
+        "Building a plain React SPA with no Next.js (use the react skill)",
+        "Backend-only services with no Next.js frontend"
+      ]
     },
     {
       "category": "frontend",
@@ -29,7 +37,15 @@
       ],
       "requires": [],
       "version": "1.0.0",
-      "body": "# React Skill\n\nCompany conventions for React.\n\n## Component patterns\n\n- Default to function components with hooks\n- Lift state to the smallest common ancestor\n- Extract logic into custom hooks when it uses React hooks (`useState`, `useEffect`, etc.)\n- Extract pure functions into `lib/` utilities (not hooks)\n\n## Props\n\n```tsx\n// Good — explicit interface, destructure in params\ninterface ButtonProps {\n  variant: \"primary\" | \"secondary\"\n  children: React.ReactNode\n}\n\n// Avoid — inline types that are reused elsewhere\n```\n\n## State management\n\n- React state + context for UI state\n- tRPC react-query for server state\n- Avoid Redux/Zustand unless the project already uses them"
+      "description": "Company conventions for React component development.",
+      "useWhen": [
+        "Building React components, hooks, or client-side UI",
+        "Any project using React, including Next.js frontends"
+      ],
+      "doNotUseWhen": [
+        "Using a non-React frontend framework (Vue, Angular, Svelte)",
+        "Backend-only work"
+      ]
     },
     {
       "category": "frontend",
@@ -41,7 +57,15 @@
       ],
       "requires": [],
       "version": "1.0.0",
-      "body": "# Tailwind CSS Skill\n\nCompany conventions for Tailwind CSS.\n\n## Class ordering\n\nUse Prettier plugin `prettier-plugin-tailwindcss` — let the formatter handle order.\n\n## Design tokens\n\nAll design tokens come from `tailwind.config.ts` — no arbitrary values (`h-[32px]`) unless the design system doesn't cover the case.\n\n## Utility patterns\n\n```tsx\n// Good — use cn() for conditional classes\n<div className={cn(\"flex items-center gap-2\", isActive && \"bg-blue-100\")} />\n\n// Avoid — long inline conditionals\n<div className={`flex items-center gap-2 ${isActive ? \"bg-blue-100\" : \"\"}`} />\n```\n\n## Component patterns\n\n- Extract repeated class groups into React components (don't repeat markup+classes)\n- Use `@apply` only in component libraries, never in page code"
+      "description": "Company conventions for styling with Tailwind CSS.",
+      "useWhen": [
+        "Styling UI with Tailwind CSS utility classes",
+        "Configuring the Tailwind theme or design tokens"
+      ],
+      "doNotUseWhen": [
+        "Using a different styling approach (CSS Modules, styled-components, plain CSS)",
+        "Non-UI work"
+      ]
     },
     {
       "category": "backend",
@@ -54,7 +78,15 @@
       ],
       "requires": [],
       "version": "1.0.0",
-      "body": "# Express Skill\n\nCompany conventions for Express.js backends.\n\n## Project structure\n\n```\nsrc/\n  routes/\n    users.routes.ts\n    auth.routes.ts\n  middleware/\n    auth.middleware.ts\n    error.middleware.ts\n  services/\n    users.service.ts\n  utils/\n    api-response.ts\n  app.ts\n  server.ts\n```\n\n## Patterns\n\n- Router files define routes and wire middleware\n- Controllers are thin — validate with `express-validator`, delegate to services\n- Error handling via centralized error middleware (not try/catch in every route)\n- Use `async-wrap` or a wrapper to catch async errors\n\n## Response format\n\n```ts\n// Consistent envelope\n{ status: \"success\" | \"error\", data?: any, message?: string }\n```"
+      "description": "Company conventions for building HTTP APIs with Express.",
+      "useWhen": [
+        "Building a REST/HTTP API or web server on Node.js with Express",
+        "Adding routes, middleware, or error handling to an Express app"
+      ],
+      "doNotUseWhen": [
+        "Using NestJS instead (use the nestjs skill)",
+        "Building a frontend or a non-HTTP service"
+      ]
     },
     {
       "category": "backend",
@@ -67,7 +99,15 @@
       ],
       "requires": [],
       "version": "1.0.0",
-      "body": "# NestJS Skill\n\nCompany conventions for NestJS backends.\n\n## Module structure\n\n```\nsrc/\n  modules/\n    users/\n      users.module.ts\n      users.service.ts\n      users.controller.ts\n      dto/\n      entities/\n  common/\n    guards/\n    interceptors/\n    pipes/\n    filters/\n  config/\n    env.ts\n    database.config.ts\n```\n\n## Patterns\n\n- Feature modules with controllers, services, and DTOs\n- Use `@Injectable()` services for business logic\n- Keep controllers thin — validation in DTOs, logic in services\n- Use `class-validator` + `class-transformer` for DTO validation\n\n## Database\n\n- Prisma as the ORM\n- NestJS-prisma module for DI\n- Repository pattern via Prisma service wrapper in each module\n\n## Testing\n\n- Unit tests with `jest` + in-memory mocks\n- E2E tests with `supertest` + test database"
+      "description": "Company conventions for structuring NestJS applications.",
+      "useWhen": [
+        "Building a backend with the NestJS framework",
+        "Working with Nest modules, controllers, providers, or dependency injection"
+      ],
+      "doNotUseWhen": [
+        "Using plain Express instead (use the express skill)",
+        "Frontend-only work"
+      ]
     },
     {
       "category": "backend",
@@ -78,7 +118,15 @@
       ],
       "requires": [],
       "version": "1.0.0",
-      "body": "# Prisma Skill\n\nCompany conventions for Prisma ORM.\n\n## Schema conventions\n\n```prisma\nmodel User {\n  id        String   @id @default(cuid())\n  email     String   @unique\n  name      String?\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n  posts     Post[]\n}\n\nmodel Post {\n  id        String   @id @default(cuid())\n  title     String\n  content   String?\n  authorId  String\n  author    User     @relation(fields: [authorId], references: [id])\n  createdAt DateTime @default(now())\n}\n```\n\n## Naming\n\n- Models: PascalCase, singular\n- Fields: camelCase\n- Relations: same name as the related model (camelCase)\n- Join tables: use implicit many-to-many unless custom fields needed\n\n## Migration\n\n- Run `npx prisma migrate dev` during development\n- Generate migration names: `npx prisma migrate dev --name add_user_profile`\n- Never edit generated migration files manually\n\n## Client\n\n```ts\n// Use a singleton in lib/db.ts\nimport { PrismaClient } from \"@prisma/client\"\nconst prisma = new PrismaClient()\nexport default prisma\n```"
+      "description": "Company conventions for data access with the Prisma ORM.",
+      "useWhen": [
+        "Defining a database schema or running migrations with Prisma",
+        "Writing type-safe database queries via Prisma Client"
+      ],
+      "doNotUseWhen": [
+        "Not using Prisma for data access",
+        "Writing raw SQL without an ORM"
+      ]
     },
     {
       "category": "database",
@@ -90,7 +138,14 @@
       ],
       "requires": [],
       "version": "1.0.0",
-      "body": "# PostgreSQL Skill\n\nCompany conventions for PostgreSQL databases.\n\n## Connections\n\n- Connection pooling via PgBouncer in production\n- Connection string from environment: `DATABASE_URL`\n- SSL required for production connections\n\n## Naming\n\n- Tables: snake_case, plural (`users`, `blog_posts`)\n- Columns: snake_case (`created_at`, `user_id`)\n- Primary keys: `id BIGSERIAL PRIMARY KEY` or UUID\n- Foreign keys: `{referenced_table}_id`\n\n## Migrations\n\n- Use Prisma Migrate or direct SQL via `supabase migration`\n- One migration per schema change, never squash\n- Always add `down` migration if writing raw SQL\n\n## Performance\n\n- Add indexes for columns used in WHERE, JOIN, ORDER BY\n- Use `EXPLAIN ANALYZE` to verify query plans\n- Avoid N+1 by using JOINs or batch loading"
+      "description": "Company conventions for PostgreSQL schema design and usage.",
+      "useWhen": [
+        "Designing PostgreSQL schemas or indexes, or writing SQL",
+        "Operating or querying a Postgres database directly"
+      ],
+      "doNotUseWhen": [
+        "Using a different database engine (MySQL, MongoDB, etc.)"
+      ]
     },
     {
       "category": "database",
@@ -103,7 +158,15 @@
         "postgres"
       ],
       "version": "1.0.0",
-      "body": "# Supabase Skill\n\nCompany conventions for Supabase.\n\n## Client setup\n\n```ts\n// lib/supabase.ts\nimport { createClient } from \"@supabase/supabase-js\"\nimport { Database } from \"./database.types\"\n\nexport const supabase = createClient<Database>(\n  process.env.NEXT_PUBLIC_SUPABASE_URL!,\n  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!\n)\n```\n\n## Auth\n\n- Use Supabase Auth for authentication\n- RLS (Row Level Security) on all tables\n- Always define policies per operation (SELECT/INSERT/UPDATE/DELETE)\n\n## Database\n\n- Use the Supabase SQL editor or migrations via `supabase migration`\n- Generate TypeScript types from schema: `supabase gen types typescript --linked > lib/database.types.ts`\n\n## Storage\n\n- Public bucket for user-uploaded content with RLS policies\n- Use `supabase.storage.from().upload()` with path convention `{userId}/{filename}`"
+      "description": "Company conventions for using Supabase (Postgres, auth, storage).",
+      "useWhen": [
+        "Using Supabase for database, auth, or storage",
+        "Setting up the Supabase client, RLS policies, or edge functions"
+      ],
+      "doNotUseWhen": [
+        "Self-managed Postgres without Supabase (use the postgres skill)",
+        "Not using Supabase"
+      ]
     }
   ]
 }

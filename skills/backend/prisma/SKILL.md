@@ -4,6 +4,13 @@ category: backend
 match: [prisma]
 requires: []
 version: 1.0.0
+description: Company conventions for data access with the Prisma ORM.
+useWhen:
+  - Defining a database schema or running migrations with Prisma
+  - Writing type-safe database queries via Prisma Client
+doNotUseWhen:
+  - Not using Prisma for data access
+  - Writing raw SQL without an ORM
 ---
 
 # Prisma Skill

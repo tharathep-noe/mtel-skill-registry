@@ -4,6 +4,13 @@ category: backend
 match: [express, expressjs, "express.js"]
 requires: []
 version: 1.0.0
+description: Company conventions for building HTTP APIs with Express.
+useWhen:
+  - Building a REST/HTTP API or web server on Node.js with Express
+  - Adding routes, middleware, or error handling to an Express app
+doNotUseWhen:
+  - Using NestJS instead (use the nestjs skill)
+  - Building a frontend or a non-HTTP service
 ---
 
 # Express Skill

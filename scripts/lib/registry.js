@@ -15,8 +15,16 @@ const REPO_ROOT = path.join(__dirname, "..", "..")
 const SKILLS_ROOT = path.join(REPO_ROOT, "skills")
 const CATEGORIES = ["frontend", "backend", "database"]
 
+// Normalize a frontmatter field that should be a list of strings: accept an
+// array as-is, wrap a lone string, treat anything else as empty.
+function toStringArray(value) {
+  if (Array.isArray(value)) return value.map((v) => String(v))
+  if (typeof value === "string" && value.trim()) return [value.trim()]
+  return []
+}
+
 /**
- * @returns {{ skills: Array<{category,name,path,match,requires,version,body}>, warnings: string[] }}
+ * @returns {{ skills: Array<{category,name,path,match,requires,version,description,useWhen,doNotUseWhen,body}>, warnings: string[] }}
  */
 function collectSkills() {
   const skills = []
@@ -52,6 +60,13 @@ function collectSkills() {
       }
       seenNames.set(meta.name, where)
 
+      // `description` powers the lightweight catalog (bundle.json); warn if it
+      // is missing so authors add one rather than shipping a body-less entry
+      // that a consumer can't reason about without fetching the full skill.
+      if (!meta.description) {
+        warnings.push(`${where}: missing "description" — catalog entry will have no summary`)
+      }
+
       skills.push({
         category,
         name: meta.name,
@@ -59,6 +74,9 @@ function collectSkills() {
         match: Array.isArray(meta.match) ? meta.match : [],
         requires: Array.isArray(meta.requires) ? meta.requires : [],
         version: meta.version != null ? String(meta.version) : "0.0.0",
+        description: meta.description ? String(meta.description) : "",
+        useWhen: toStringArray(meta.useWhen),
+        doNotUseWhen: toStringArray(meta.doNotUseWhen),
         body: content.trim(),
       })
     }

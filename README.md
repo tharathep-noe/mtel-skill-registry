@@ -34,13 +34,13 @@ The build produces two JSON files from the same `SKILL.md` sources — never han
 | File | Contents | Consumed by |
 |---|---|---|
 | `index.json` | Metadata only (`match`, `requires`, `version`, `path`) | The MCP resolver, for keyword matching |
-| `bundle.json` | Metadata **+ each skill's full markdown body** | Clients, as a self-contained catalog |
+| `bundle.json` | Metadata **+ `description` + `useWhen`/`doNotUseWhen`** (no bodies) | Clients, as a lightweight selection catalog |
 
-`bundle.json` exists so a client can fetch **one file**, show the full skill catalog, and let the user pick which skills to write into `.claude/skills/` — no `git clone` of the registry required. Shape:
+`bundle.json` is a **selection catalog**: a consumer (often an LLM) fetches this one small file to decide *which* skills to pull — using each skill's short `description` and `useWhen`/`doNotUseWhen` guidance — **without spending tokens on every skill's full body**. The body is fetched on demand afterwards (via the fetch flow / `git clone`). Shape:
 
 ```json
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "generatedAt": "2026-07-23T00:00:00.000Z",
   "count": 8,
   "skills": [
@@ -51,7 +51,15 @@ The build produces two JSON files from the same `SKILL.md` sources — never han
       "match": ["nextjs", "next.js", "next"],
       "requires": ["react"],
       "version": "1.0.0",
-      "body": "# Next.js Skill\n\nCompany conventions for Next.js projects.\n…"
+      "description": "Company conventions for Next.js (App Router) applications.",
+      "useWhen": [
+        "Building or extending a Next.js application",
+        "Working with the App Router, server components, routing, or data fetching"
+      ],
+      "doNotUseWhen": [
+        "Building a plain React SPA with no Next.js (use the react skill)",
+        "Backend-only services with no Next.js frontend"
+      ]
     }
   ]
 }
@@ -87,7 +95,7 @@ mtel-skill-registry/
 │   ├── package.json             # Build-tooling deps (gray-matter)
 │   ├── lib/registry.js          # Shared scan + frontmatter parse + validation
 │   ├── generate-index.js        # Regenerates index.json (metadata) from frontmatter
-│   ├── build-bundle.js          # Regenerates bundle.json (metadata + bodies)
+│   ├── build-bundle.js          # Regenerates bundle.json (selection catalog, no bodies)
 │   ├── fetch-skills.sh          # Clones registry + copies matched skills
 │   └── generate-agents-md.js    # Concat skills into AGENTS.md (Codex)
 ├── tests/
@@ -112,8 +120,17 @@ category: database
 match: [redis]
 requires: []
 version: 1.0.0
+description: Company conventions for caching and data structures with Redis.
+useWhen:
+  - Adding caching, rate limiting, or ephemeral data with Redis
+  - Working with Redis clients, keys, or TTLs
+doNotUseWhen:
+  - Using Redis only as a managed dependency you don't configure
+  - Persistent relational data (use the postgres skill)
 ---
 ```
+
+`description` + `useWhen`/`doNotUseWhen` are what land in `bundle.json` (the selection catalog), so write them for a reader deciding whether to pull the skill — concise and specific.
 
 3. Write the skill body in markdown — company conventions, architecture patterns, code examples
 4. Regenerate `index.json` and `bundle.json` (first time: `cd scripts && npm install`):
@@ -133,6 +150,9 @@ cd scripts && npm run build     # runs generate-index.js + build-bundle.js
 | `match` | yes | Array of keyword strings the resolver uses for matching |
 | `requires` | no | Array of skill names this skill depends on (e.g., supabase requires postgres) |
 | `version` | yes | Semver version for the skill content |
+| `description` | recommended | One-line summary shown in the `bundle.json` selection catalog |
+| `useWhen` | recommended | List of situations where this skill applies (catalog guidance) |
+| `doNotUseWhen` | recommended | List of situations where it does *not* apply / a different skill fits |
 
 ### Match keyword guidelines
 

@@ -4,6 +4,12 @@ category: database
 match: [postgres, postgresql]
 requires: []
 version: 1.0.0
+description: Company conventions for PostgreSQL schema design and usage.
+useWhen:
+  - Designing PostgreSQL schemas or indexes, or writing SQL
+  - Operating or querying a Postgres database directly
+doNotUseWhen:
+  - Using a different database engine (MySQL, MongoDB, etc.)
 ---
 
 # PostgreSQL Skill

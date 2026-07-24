@@ -4,6 +4,13 @@ category: frontend
 match: [react, reactjs, "react.js"]
 requires: []
 version: 1.0.0
+description: Company conventions for React component development.
+useWhen:
+  - Building React components, hooks, or client-side UI
+  - Any project using React, including Next.js frontends
+doNotUseWhen:
+  - Using a non-React frontend framework (Vue, Angular, Svelte)
+  - Backend-only work
 ---
 
 # React Skill

@@ -4,6 +4,13 @@ category: database
 match: [supabase]
 requires: [postgres]
 version: 1.0.0
+description: Company conventions for using Supabase (Postgres, auth, storage).
+useWhen:
+  - Using Supabase for database, auth, or storage
+  - Setting up the Supabase client, RLS policies, or edge functions
+doNotUseWhen:
+  - Self-managed Postgres without Supabase (use the postgres skill)
+  - Not using Supabase
 ---
 
 # Supabase Skill

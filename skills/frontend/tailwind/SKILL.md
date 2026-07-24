@@ -4,6 +4,13 @@ category: frontend
 match: [tailwind, tailwindcss]
 requires: []
 version: 1.0.0
+description: Company conventions for styling with Tailwind CSS.
+useWhen:
+  - Styling UI with Tailwind CSS utility classes
+  - Configuring the Tailwind theme or design tokens
+doNotUseWhen:
+  - Using a different styling approach (CSS Modules, styled-components, plain CSS)
+  - Non-UI work
 ---
 
 # Tailwind CSS Skill

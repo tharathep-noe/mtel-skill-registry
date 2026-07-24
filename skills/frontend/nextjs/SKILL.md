@@ -4,6 +4,13 @@ category: frontend
 match: [nextjs, "next.js", next]
 requires: [react]
 version: 1.0.0
+description: Company conventions for Next.js (App Router) applications.
+useWhen:
+  - Building or extending a Next.js application
+  - Working with the App Router, server components, routing, or data fetching
+doNotUseWhen:
+  - Building a plain React SPA with no Next.js (use the react skill)
+  - Backend-only services with no Next.js frontend
 ---
 
 # Next.js Skill

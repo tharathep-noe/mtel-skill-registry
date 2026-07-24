@@ -1,20 +1,22 @@
 #!/usr/bin/env node
 /**
  * build-bundle.js
- * Builds bundle.json — a self-contained catalog of every skill including its
- * full markdown body. Unlike index.json (metadata only, for the resolver),
- * the bundle carries content, so a client can present the catalog and let the
- * user pick skills to write into .claude/skills/ without cloning the registry.
+ * Builds bundle.json — a lightweight *selection catalog* of every skill:
+ * metadata plus a short `description` and `useWhen` / `doNotUseWhen` guidance,
+ * but NOT the full markdown body. The point is for a consumer (often an LLM) to
+ * decide *which* skills to pull without spending tokens on every skill's body;
+ * the body is fetched on demand afterwards (git clone / fetch-skills.sh).
  *
  * Run from repo root: node scripts/build-bundle.js
  *
  * Output shape:
  *   {
- *     "schemaVersion": 1,
+ *     "schemaVersion": 2,
  *     "generatedAt": "<ISO timestamp>",
  *     "count": <n>,
  *     "skills": [
- *       { category, name, path, match, requires, version, body }, ...
+ *       { category, name, path, match, requires, version,
+ *         description, useWhen: [...], doNotUseWhen: [...] }, ...
  *     ]
  *   }
  * `skills` is ordered by category (frontend → backend → database) then name,
@@ -35,11 +37,14 @@ skills.sort(
   (a, b) => categoryRank(a.category) - categoryRank(b.category) || a.name.localeCompare(b.name)
 )
 
+// Drop the body — the catalog is for *choosing* skills, not delivering them.
+const catalog = skills.map(({ body, ...rest }) => rest)
+
 const bundle = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   generatedAt: new Date().toISOString(),
-  count: skills.length,
-  skills,
+  count: catalog.length,
+  skills: catalog,
 }
 
 for (const w of warnings) console.warn(`⚠  ${w}`)

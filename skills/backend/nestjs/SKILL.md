@@ -4,6 +4,13 @@ category: backend
 match: [nestjs, "nest.js", nest]
 requires: []
 version: 1.0.0
+description: Company conventions for structuring NestJS applications.
+useWhen:
+  - Building a backend with the NestJS framework
+  - Working with Nest modules, controllers, providers, or dependency injection
+doNotUseWhen:
+  - Using plain Express instead (use the express skill)
+  - Frontend-only work
 ---
 
 # NestJS Skill
