@@ -17,7 +17,7 @@ A `SKILL.md` that has already been copied into `.claude/skills/<name>/` (or conc
 _Avoid_: "installed skill," "synced skill" (implies auto-updating, which it isn't)
 
 **Fetch Confirmation**:
-The universal checkpoint before any registry clone/copy: regardless of which trigger fired or which tier resolved it, the resolved skill list is always shown to the user for confirmation first. This is deliberately the safety net for resolver mismatches — since `resolve_skills` uses exact-match (see PLAN.md), a human catches misses here rather than the resolver being made "smarter."
+The universal checkpoint before any skill fetch/write: regardless of which trigger fired or which tier resolved it, the resolved skill list is always shown to the user for confirmation first. This is deliberately the safety net for resolver mismatches — since `resolve_skills` uses exact-match (see PLAN.md), a human catches misses here rather than the resolver being made "smarter."
 _Avoid_: "confirmation step" alone (say which trigger it's guarding)
 
 **Existing-project reference**:

@@ -69,15 +69,26 @@ Wait for explicit user confirmation before cloning or copying anything. This is 
 
 If no skills matched, inform the user and offer to create new ones.
 
-### Step 4: Fetch skills (git clone + copy)
+### Step 4: Fetch skills (download from the registry server)
 
-On confirmation:
+On confirmation, download the matched skills from the registry **server** — no
+git clone. Run the fetch script with the registry base URL and the matched skill
+paths (the `path` field the resolver returned):
 
-1. Clone registry: `git clone --depth 1 https://github.com/company/mtel-skill-registry.git /tmp/registry`
-2. Create `.claude/skills/` if not exists
-3. Copy each matched skill: `cp -r /tmp/registry/{path} .claude/skills/{name}`
-4. Remove temp clone: `rm -rf /tmp/registry`
-5. If a skill directory already exists in `.claude/skills/`, skip it (no overwrite)
+```bash
+node <registry>/scripts/fetch-skills.js <registry-url> \
+  skills/frontend/nextjs skills/frontend/tailwind skills/database/supabase
+```
+
+It fetches the self-contained bundle (`GET <registry-url>/bundle.json`) and
+writes each matched skill's full SKILL.md into `.claude/skills/<name>/`.
+
+- The registry URL comes from config/env (e.g. `MTEL_SKILL_REGISTRY_URL`). If the
+  server gates the bundle, set `MCP_AUTH_TOKEN` so the script sends the bearer token.
+- If the fetch script isn't available locally, fetch `<registry-url>/bundle.json`
+  directly and write each matched skill's `raw` field to
+  `.claude/skills/<name>/SKILL.md` yourself — same result.
+- A skill whose `.claude/skills/<name>/` already exists is skipped (no overwrite).
 
 ### Step 5: Codex detection
 

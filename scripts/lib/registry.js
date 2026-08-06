@@ -24,7 +24,7 @@ function toStringArray(value) {
 }
 
 /**
- * @returns {{ skills: Array<{category,name,path,match,requires,version,description,useWhen,doNotUseWhen,body}>, warnings: string[] }}
+ * @returns {{ skills: Array<{category,name,path,match,requires,version,description,useWhen,doNotUseWhen,body,raw}>, warnings: string[] }}
  */
 function collectSkills() {
   const skills = []
@@ -42,7 +42,8 @@ function collectSkills() {
       if (!fs.existsSync(skillFile)) continue
 
       const where = `skills/${category}/${entry.name}`
-      const { data: meta, content } = matter(fs.readFileSync(skillFile, "utf-8"))
+      const raw = fs.readFileSync(skillFile, "utf-8")
+      const { data: meta, content } = matter(raw)
 
       // Validate required frontmatter so a malformed SKILL.md fails loudly
       // instead of silently producing a broken/unresolvable entry.
@@ -77,7 +78,8 @@ function collectSkills() {
         description: meta.description ? String(meta.description) : "",
         useWhen: toStringArray(meta.useWhen),
         doNotUseWhen: toStringArray(meta.doNotUseWhen),
-        body: content.trim(),
+        body: content.trim(), // frontmatter-stripped (catalog display / Codex concat)
+        raw: raw.trim(), // full SKILL.md incl. frontmatter (delivery payload)
       })
     }
   }

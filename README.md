@@ -18,7 +18,7 @@ User: "create a new Next.js project with Tailwind and Supabase"
   │
   ├─ 3. Show resolved skills to user → Fetch Confirmation
   │
-  └─ 4. On confirm: git clone → copy matched skills → clean up
+  └─ 4. On confirm: fetch GET /bundle.json from the server → write matched skills
         ├─ Claude: .claude/skills/<name>/SKILL.md
         └─ Codex:  concat into AGENTS.md at root
 ```
@@ -34,13 +34,13 @@ The build produces two JSON files from the same `SKILL.md` sources — never han
 | File | Contents | Consumed by |
 |---|---|---|
 | `index.json` | Metadata only (`match`, `requires`, `version`, `path`) | The MCP resolver, for keyword matching |
-| `bundle.json` | Metadata **+ `description` + `useWhen`/`doNotUseWhen`** (no bodies) | Clients, as a lightweight selection catalog |
+| `bundle.json` | Metadata **+ `description` + `useWhen`/`doNotUseWhen` + `raw` (full SKILL.md)** | Clients, as a selection catalog **and** delivery payload |
 
-`bundle.json` is a **selection catalog**: a consumer (often an LLM) fetches this one small file to decide *which* skills to pull — using each skill's short `description` and `useWhen`/`doNotUseWhen` guidance — **without spending tokens on every skill's full body**. The body is fetched on demand afterwards (via the fetch flow / `git clone`). Shape:
+`bundle.json` is the **self-contained bundle**: a consumer (often an LLM) fetches this one file, decides *which* skills to pull from each skill's `description` and `useWhen`/`doNotUseWhen` guidance, then writes each matched skill's `raw` (the complete SKILL.md, frontmatter and all) straight into `.claude/skills/<name>/SKILL.md` — no git clone of the registry. Shape:
 
 ```json
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "generatedAt": "2026-07-23T00:00:00.000Z",
   "count": 8,
   "skills": [
@@ -59,7 +59,8 @@ The build produces two JSON files from the same `SKILL.md` sources — never han
       "doNotUseWhen": [
         "Building a plain React SPA with no Next.js (use the react skill)",
         "Backend-only services with no Next.js frontend"
-      ]
+      ],
+      "raw": "---\nname: nextjs\n...\n---\n\n# nextjs\n\n...full SKILL.md body..."
     }
   ]
 }
@@ -95,8 +96,8 @@ mtel-skill-registry/
 │   ├── package.json             # Build-tooling deps (gray-matter)
 │   ├── lib/registry.js          # Shared scan + frontmatter parse + validation
 │   ├── generate-index.js        # Regenerates index.json (metadata) from frontmatter
-│   ├── build-bundle.js          # Regenerates bundle.json (selection catalog, no bodies)
-│   ├── fetch-skills.sh          # Clones registry + copies matched skills
+│   ├── build-bundle.js          # Regenerates bundle.json (catalog + full SKILL.md payload)
+│   ├── fetch-skills.js          # Downloads matched skills from the server's /bundle.json
 │   └── generate-agents-md.js    # Concat skills into AGENTS.md (Codex)
 ├── tests/
 │   ├── trigger-corpus.json      # Should-fire / should-not-fire prompts

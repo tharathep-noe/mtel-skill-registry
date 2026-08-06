@@ -141,24 +141,22 @@ Resolver ไม่ต้องรู้เนื้อหาไฟล์ SKILL.m
 
 Matching strategy: exact match on keywords against `match` arrays. Fuzzy/synonym matching is a future enhancement — open question below.
 
-### Fetching: MCP resolve → git pull
+### Fetching: MCP resolve → download from server
+
+การส่งมอบเนื้อหา skill ทำผ่าน **registry server ตัวเดียวกับ resolver** ไม่มี git clone เลย — client ต่อ URL เดียว ได้ทั้ง `resolve_skills` (เลือก) และ `GET /bundle.json` (เนื้อหา)
 
 1. `init-project` ถูก trigger (AC1) → ดึง keyword ของ stack จากบทสนทนา/context ปัจจุบัน
 2. เรียก MCP tool `resolve_skills(keywords)` → ได้ path ที่ compatible กลับมา
-3. Agent (bash tool) clone registry repo แบบ shallow แล้ว copy เฉพาะ path ที่ resolver บอกมา ลงใน `.claude/skills/<name>/SKILL.md`
-4. ลบ temp clone ทิ้ง
-5. Claude เห็น skill ที่ pull เข้ามาเป็น directory-scoped skill ของ project นี้ทันที และทำตาม scaffold instruction ต่อ
+3. Agent ดึง `GET <registry>/bundle.json` (self-contained bundle ที่มี `raw` = SKILL.md เต็มของทุก skill) แล้วเขียนเฉพาะ path ที่ resolver บอกมา ลงใน `.claude/skills/<name>/SKILL.md` — ทำผ่าน `scripts/fetch-skills.js`
+4. Claude เห็น skill ที่ pull เข้ามาเป็น directory-scoped skill ของ project นี้ทันที และทำตาม scaffold instruction ต่อ
 
 ```bash
-git clone --depth 1 https://github.com/company/mtel-skill-registry.git /tmp/registry
-mkdir -p .claude/skills
-cp -r /tmp/registry/skills/frontend/nextjs    .claude/skills/nextjs
-cp -r /tmp/registry/skills/frontend/tailwind  .claude/skills/tailwind
-cp -r /tmp/registry/skills/database/supabase  .claude/skills/supabase
-rm -rf /tmp/registry
+node <registry>/scripts/fetch-skills.js https://skills.mtel.internal \
+  skills/frontend/nextjs skills/frontend/tailwind skills/database/supabase
+# → .claude/skills/{nextjs,tailwind,supabase}/SKILL.md
 ```
 
-**Auth & credential provisioning**: Private repo clone requires a token or deploy-key. For local Claude, use a git credentials helper or `GITHUB_TOKEN` env var provisioned per developer machine. For Codex CI/sandbox, use the CI provider's secret store. Consider `git sparse-checkout` to avoid full clone overhead on large registries.
+**Auth & credential provisioning**: ใช้ credential ช่องทางเดียวกับ MCP server — ถ้าตั้ง `MCP_AUTH_TOKEN` ทั้ง `/mcp` และ `/bundle.json` จะถูก gate ด้วย bearer token เดียวกัน client ส่ง `Authorization: Bearer <token>` (ผ่าน env `MCP_AUTH_TOKEN`) ไม่ต้องมี git token / deploy-key แยก และไม่ต้องให้ registry อยู่บน GitHub
 
 **Idempotency**: If `.claude/skills/<name>/` already exists, skip that skill (do not overwrite). If the user re-inits with different keywords, merge new skills alongside existing ones — never delete existing skills without explicit user confirmation.
 
