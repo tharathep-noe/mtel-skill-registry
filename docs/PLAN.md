@@ -143,20 +143,20 @@ Matching strategy: exact match on keywords against `match` arrays. Fuzzy/synonym
 
 ### Fetching: MCP resolve → download from server
 
-การส่งมอบเนื้อหา skill ทำผ่าน **registry server ตัวเดียวกับ resolver** ไม่มี git clone เลย — client ต่อ URL เดียว ได้ทั้ง `resolve_skills` (เลือก) และ `GET /bundle.json` (เนื้อหา)
+การส่งมอบเนื้อหา skill ทำผ่าน **registry server ตัวเดียวกับ resolver** ไม่มี git clone เลย — client ต่อ URL เดียว ได้ทั้ง `resolve_skills` (เลือก) และ `GET /skills/<name>.json` (เนื้อหาทีละ skill)
 
 1. `init-project` ถูก trigger (AC1) → ดึง keyword ของ stack จากบทสนทนา/context ปัจจุบัน
-2. เรียก MCP tool `resolve_skills(keywords)` → ได้ path ที่ compatible กลับมา
-3. Agent ดึง `GET <registry>/bundle.json` (self-contained bundle ที่มี `raw` = SKILL.md เต็มของทุก skill) แล้วเขียนเฉพาะ path ที่ resolver บอกมา ลงใน `.claude/skills/<name>/SKILL.md` — ทำผ่าน `scripts/fetch-skills.js`
+2. เรียก MCP tool `resolve_skills(keywords)` → ได้ list ของ skill (name/path) ที่ compatible กลับมา
+3. Agent ดึงทีละตัวจาก `GET <registry>/skills/<name>.json` (แต่ละอันมี `raw` = SKILL.md เต็ม) แล้วเขียนลง `.claude/skills/<name>/SKILL.md` — ทำผ่าน `scripts/fetch-skills.js` (`GET /bundle.json` ยังมีไว้ browse ทั้ง catalog)
 4. Claude เห็น skill ที่ pull เข้ามาเป็น directory-scoped skill ของ project นี้ทันที และทำตาม scaffold instruction ต่อ
 
 ```bash
-node <registry>/scripts/fetch-skills.js https://skills.mtel.internal \
-  skills/frontend/nextjs skills/frontend/tailwind skills/database/supabase
+node <registry>/scripts/fetch-skills.js https://skills.mtel.internal nextjs tailwind supabase
+# → GET /skills/nextjs.json, /skills/tailwind.json, /skills/supabase.json
 # → .claude/skills/{nextjs,tailwind,supabase}/SKILL.md
 ```
 
-**Auth & credential provisioning**: ใช้ credential ช่องทางเดียวกับ MCP server — ถ้าตั้ง `MCP_AUTH_TOKEN` ทั้ง `/mcp` และ `/bundle.json` จะถูก gate ด้วย bearer token เดียวกัน client ส่ง `Authorization: Bearer <token>` (ผ่าน env `MCP_AUTH_TOKEN`) ไม่ต้องมี git token / deploy-key แยก และไม่ต้องให้ registry อยู่บน GitHub
+**Auth & credential provisioning**: ใช้ credential ช่องทางเดียวกับ MCP server — ถ้าตั้ง `MCP_AUTH_TOKEN` ทั้ง `/mcp`, `/bundle.json` และ `/skills/*` จะถูก gate ด้วย bearer token เดียวกัน client ส่ง `Authorization: Bearer <token>` (ผ่าน env `MCP_AUTH_TOKEN`) ไม่ต้องมี git token / deploy-key แยก และไม่ต้องให้ registry อยู่บน GitHub
 
 **Idempotency**: If `.claude/skills/<name>/` already exists, skip that skill (do not overwrite). If the user re-inits with different keywords, merge new skills alongside existing ones — never delete existing skills without explicit user confirmation.
 

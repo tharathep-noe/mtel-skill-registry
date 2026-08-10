@@ -1,0 +1,21 @@
+{
+  "category": "frontend",
+  "name": "tailwind",
+  "path": "skills/frontend/tailwind",
+  "match": [
+    "tailwind",
+    "tailwindcss"
+  ],
+  "requires": [],
+  "version": "1.0.0",
+  "description": "Company conventions for styling with Tailwind CSS.",
+  "useWhen": [
+    "Styling UI with Tailwind CSS utility classes",
+    "Configuring the Tailwind theme or design tokens"
+  ],
+  "doNotUseWhen": [
+    "Using a different styling approach (CSS Modules, styled-components, plain CSS)",
+    "Non-UI work"
+  ],
+  "raw": "---\nname: tailwind\ncategory: frontend\nmatch: [tailwind, tailwindcss]\nrequires: []\nversion: 1.0.0\ndescription: Company conventions for styling with Tailwind CSS.\nuseWhen:\n  - Styling UI with Tailwind CSS utility classes\n  - Configuring the Tailwind theme or design tokens\ndoNotUseWhen:\n  - Using a different styling approach (CSS Modules, styled-components, plain CSS)\n  - Non-UI work\n---\n\n# Tailwind CSS Skill\n\nCompany conventions for Tailwind CSS.\n\n## Class ordering\n\nUse Prettier plugin `prettier-plugin-tailwindcss` — let the formatter handle order.\n\n## Design tokens\n\nAll design tokens come from `tailwind.config.ts` — no arbitrary values (`h-[32px]`) unless the design system doesn't cover the case.\n\n## Utility patterns\n\n```tsx\n// Good — use cn() for conditional classes\n<div className={cn(\"flex items-center gap-2\", isActive && \"bg-blue-100\")} />\n\n// Avoid — long inline conditionals\n<div className={`flex items-center gap-2 ${isActive ? \"bg-blue-100\" : \"\"}`} />\n```\n\n## Component patterns\n\n- Extract repeated class groups into React components (don't repeat markup+classes)\n- Use `@apply` only in component libraries, never in page code"
+}

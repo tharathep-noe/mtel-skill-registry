@@ -52,6 +52,8 @@ Output: a flat list of keyword strings.
 
 Call the MCP tool `resolve_skills({ keywords })` to get matching registry entries. The tool returns `{ matched: [{ category, name, path, version }] }`.
 
+The resolver is served over MCP (Streamable HTTP) at **`http://localhost:3000/mcp`** for local development (this is the default the registry server binds to via `cd resolver && npm start`). Point your MCP client at that URL. In production, swap the host for the deployed registry URL.
+
 ### Step 3: Fetch Confirmation
 
 Show the resolved skills to the user as a checklist:
@@ -69,25 +71,41 @@ Wait for explicit user confirmation before cloning or copying anything. This is 
 
 If no skills matched, inform the user and offer to create new ones.
 
-### Step 4: Fetch skills (download from the registry server)
+### Step 4: Fetch skills (pull content into the project)
 
-On confirmation, download the matched skills from the registry **server** — no
-git clone. Run the fetch script with the registry base URL and the matched skill
-paths (the `path` field the resolver returned):
+On confirmation, pull the matched skills' full content and write each to
+`.claude/skills/<name>/SKILL.md` — no git clone. There are two equivalent ways;
+prefer the MCP tool since you're already connected to the resolver.
 
-```bash
-node <registry>/scripts/fetch-skills.js <registry-url> \
-  skills/frontend/nextjs skills/frontend/tailwind skills/database/supabase
+**Option A — MCP tool `get_skills` (preferred).** Call `get_skills({ names })`
+with the matched skill **names** (the `name` field `resolve_skills` returned):
+
+```
+get_skills({ names: ["nextjs", "tailwind", "supabase"] })
+→ { skills: [{ category, name, path, version, raw }], missing: [] }
 ```
 
-It fetches the self-contained bundle (`GET <registry-url>/bundle.json`) and
-writes each matched skill's full SKILL.md into `.claude/skills/<name>/`.
+Write each returned skill's `raw` (the complete SKILL.md incl. frontmatter) to
+`.claude/skills/<name>/SKILL.md`. A skill whose `.claude/skills/<name>/` already
+exists is left untouched (never overwrite). Anything in `missing` isn't in the
+registry — surface it to the user rather than silently skipping.
 
-- The registry URL comes from config/env (e.g. `MTEL_SKILL_REGISTRY_URL`). If the
-  server gates the bundle, set `MCP_AUTH_TOKEN` so the script sends the bearer token.
-- If the fetch script isn't available locally, fetch `<registry-url>/bundle.json`
-  directly and write each matched skill's `raw` field to
-  `.claude/skills/<name>/SKILL.md` yourself — same result.
+**Option B — fetch script (no MCP client / shell-only).** Run the fetch script
+with the registry base URL and the matched skill names:
+
+```bash
+node <registry>/scripts/fetch-skills.js http://localhost:3000 nextjs tailwind supabase
+```
+
+For each name it fetches `GET http://localhost:3000/skills/<name>.json` (which
+carries that skill's full `raw` SKILL.md) and writes it to
+`.claude/skills/<name>/SKILL.md`.
+
+- **Registry base URL**: for local development this is **`http://localhost:3000`**
+  — the same host as the MCP server (`http://localhost:3000/mcp`) without the
+  `/mcp` path. Override with the `MTEL_SKILL_REGISTRY_URL` env var to point at a
+  deployed registry; if unset, default to `http://localhost:3000`. If the server
+  gates `/skills/*`, set `MCP_AUTH_TOKEN` so the script sends the bearer token.
 - A skill whose `.claude/skills/<name>/` already exists is skipped (no overwrite).
 
 ### Step 5: Codex detection
