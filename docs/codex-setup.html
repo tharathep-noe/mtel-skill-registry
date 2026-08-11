@@ -17,21 +17,34 @@
   <h1>Codex setup</h1>
   <p class="lede">Connect Codex CLI to the central <code>mtel-skill-resolver</code> MCP server.</p>
 
-  <h2>1. Edit config</h2>
-  <p>Add the server under <code>[mcp_servers]</code> in <code>~/.codex/config.toml</code>:</p>
-  <pre><code>[mcp_servers.mtel-skill-resolver]
+  <p class="lede">Codex reads all config (including MCP servers) from a single <code>$CODEX_HOME/config.toml</code>, defaulting to <code>~/.codex</code>. To scope the resolver to <em>this</em> repo only, point <code>CODEX_HOME</code> at a repo-local <code>.codex</code> directory instead of the global one.</p>
+
+  <h2>1. Add a repo-local config</h2>
+  <p>Create <code>.codex/config.toml</code> at the repo root with the server under <code>[mcp_servers]</code>:</p>
+  <pre><code># .codex/config.toml (committed to this repo)
+[mcp_servers.mtel-skill-resolver]
 url = "https://mcp-registry.internal.company.com/mcp"</code></pre>
 
-  <h2>2. With auth token</h2>
-  <p>If the server sets <code>MCP_AUTH_TOKEN</code>, add the bearer header:</p>
+  <h2>2. Launch Codex scoped to this repo</h2>
+  <p>Point <code>CODEX_HOME</code> at the repo-local dir so Codex loads that config instead of <code>~/.codex</code>:</p>
+  <pre><code>CODEX_HOME="$PWD/.codex" codex</code></pre>
+  <p>Tip: put <code>export CODEX_HOME="$PWD/.codex"</code> in a <code>.envrc</code> (direnv) or a project script so it applies automatically whenever you work in this repo.</p>
+
+  <div class="note">
+    Recent Codex versions ship a <code>codex mcp add</code> CLI, but it writes to <code>$CODEX_HOME/config.toml</code> and has no project-scope flag. To repo-scope it, combine it with the same <code>CODEX_HOME</code> trick: <code>CODEX_HOME="$PWD/.codex" codex mcp add mtel-skill-resolver --url https://mcp-registry.internal.company.com/mcp</code>. Editing <code>.codex/config.toml</code> directly (above) is the version-agnostic way and is what we recommend.
+  </div>
+
+  <h2>3. With auth token</h2>
+  <p>If the server sets <code>MCP_AUTH_TOKEN</code>, add the bearer header in the same <code>.codex/config.toml</code>:</p>
   <pre><code>[mcp_servers.mtel-skill-resolver]
 url = "https://mcp-registry.internal.company.com/mcp"
 
 [mcp_servers.mtel-skill-resolver.http_headers]
 Authorization = "Bearer &lt;token&gt;"</code></pre>
+  <p>If you add a real token, <strong>do not commit it</strong> — gitignore <code>.codex/config.toml</code> (or keep the token in an untracked override).</p>
 
-  <h2>3. Verify</h2>
-  <p>Start Codex and run <code>/mcp</code> to confirm <code>mtel-skill-resolver</code> is connected and <code>resolve_skills</code> is listed.</p>
+  <h2>4. Verify</h2>
+  <p>Start Codex with <code>CODEX_HOME</code> set as above and run <code>/mcp</code> to confirm <code>mtel-skill-resolver</code> is connected and <code>resolve_skills</code> is listed.</p>
 
   <div class="note">
     Codex has no <code>SKILL.md</code> concept — after <code>resolve_skills</code> matches skills and <code>fetch-skills.sh</code> pulls them, run <code>generate-agents-md.js</code> to concatenate the skill bodies into a single <code>AGENTS.md</code> at the project root.

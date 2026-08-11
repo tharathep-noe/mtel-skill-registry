@@ -18,7 +18,7 @@
   <p class="lede">Connect OpenCode to the central <code>mtel-skill-resolver</code> MCP server as a remote server.</p>
 
   <h2>1. Edit config</h2>
-  <p>Add an entry under <code>mcp</code> in <code>opencode.json</code> (project root) or <code>~/.config/opencode/opencode.json</code> (global):</p>
+  <p>Add an entry under <code>mcp</code> in <code>opencode.json</code> at the repo root (create it if missing). Keeping it in the project file scopes the server to <em>this</em> repo — and it can be committed for the whole team. Do <strong>not</strong> use the global <code>~/.config/opencode/opencode.json</code>:</p>
   <pre><code>{
   "$schema": "https://opencode.ai/config.json",
   "mcp": {
@@ -44,6 +44,10 @@
     }
   }
 }</code></pre>
+
+  <div class="note">
+    OpenCode does have an <code>opencode mcp add --url … --header …</code> CLI command, but it always writes to the <strong>global</strong> <code>~/.config/opencode/opencode.json</code> — even when run from inside a repo, and there is no project-scope flag. So for repo-scoped setup, edit the project <code>opencode.json</code> by hand as above; don't use <code>opencode mcp add</code>.
+  </div>
 
   <h2>3. Verify</h2>
   <p>Restart OpenCode. The <code>resolve_skills</code> tool from <code>mtel-skill-resolver</code> appears in the available tools list. Run <code>/mcp</code> in the TUI to confirm the server connected.</p>

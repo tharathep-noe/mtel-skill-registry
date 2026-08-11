@@ -225,7 +225,7 @@ Routes:
 | `GET /health` | Liveness probe |
 | `GET /` + `/claude-setup`, `/codex-setup`, `/opencode-setup` | Landing page + per-client setup guides |
 
-Clients connect to the `/mcp` endpoint:
+Clients connect to the `/mcp` endpoint. Register the server **scoped to the consuming repo** (not globally/user-wide) so each project opts in explicitly and the config can be committed for the team:
 
 ```json
 {
@@ -236,6 +236,14 @@ Clients connect to the `/mcp` endpoint:
   }
 }
 ```
+
+How to scope it per client (full walkthroughs at `/claude-setup`, `/codex-setup`, `/opencode-setup`):
+
+| Client | Repo-scoped install |
+|---|---|
+| **Claude Code** | `claude mcp add --transport http --scope project mtel-skill-resolver <url>` → writes `.mcp.json` at the repo root (commit it). |
+| **OpenCode** | Hand-edit `opencode.json` at the repo root. `opencode mcp add` exists but always writes the **global** `~/.config/opencode/opencode.json` — no project-scope flag — so don't use it here. |
+| **Codex** | Put the server in a repo-local `.codex/config.toml` and launch with `CODEX_HOME="$PWD/.codex" codex`. `codex mcp add` (newer versions) also writes to `$CODEX_HOME`, so the same `CODEX_HOME` trick scopes it. |
 
 ### Testing the HTTP resolver with Postman
 
