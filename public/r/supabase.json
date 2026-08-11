@@ -1,0 +1,22 @@
+{
+  "category": "database",
+  "name": "supabase",
+  "path": "skills/database/supabase",
+  "match": [
+    "supabase"
+  ],
+  "requires": [
+    "postgres"
+  ],
+  "version": "1.0.0",
+  "description": "Company conventions for using Supabase (Postgres, auth, storage).",
+  "useWhen": [
+    "Using Supabase for database, auth, or storage",
+    "Setting up the Supabase client, RLS policies, or edge functions"
+  ],
+  "doNotUseWhen": [
+    "Self-managed Postgres without Supabase (use the postgres skill)",
+    "Not using Supabase"
+  ],
+  "raw": "---\nname: supabase\ncategory: database\nmatch: [supabase]\nrequires: [postgres]\nversion: 1.0.0\ndescription: Company conventions for using Supabase (Postgres, auth, storage).\nuseWhen:\n  - Using Supabase for database, auth, or storage\n  - Setting up the Supabase client, RLS policies, or edge functions\ndoNotUseWhen:\n  - Self-managed Postgres without Supabase (use the postgres skill)\n  - Not using Supabase\n---\n\n# Supabase Skill\n\nCompany conventions for Supabase.\n\n## Client setup\n\n```ts\n// lib/supabase.ts\nimport { createClient } from \"@supabase/supabase-js\"\nimport { Database } from \"./database.types\"\n\nexport const supabase = createClient<Database>(\n  process.env.NEXT_PUBLIC_SUPABASE_URL!,\n  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!\n)\n```\n\n## Auth\n\n- Use Supabase Auth for authentication\n- RLS (Row Level Security) on all tables\n- Always define policies per operation (SELECT/INSERT/UPDATE/DELETE)\n\n## Database\n\n- Use the Supabase SQL editor or migrations via `supabase migration`\n- Generate TypeScript types from schema: `supabase gen types typescript --linked > lib/database.types.ts`\n\n## Storage\n\n- Public bucket for user-uploaded content with RLS policies\n- Use `supabase.storage.from().upload()` with path convention `{userId}/{filename}`"
+}

@@ -1,4 +1,4 @@
-# Dependencies (resolver/ and scripts/ each have their own)
+# Dependencies (single root node_modules via npm workspaces)
 node_modules/
 
 # Environment / secrets (e.g. MCP_AUTH_TOKEN, REGISTRY_TOKEN)
@@ -21,4 +21,5 @@ Thumbs.db
 # (the resolver reads index.json; clients fetch bundle.json). Regenerate with
 # `cd scripts && npm run build`. Do not add them here.
 #
-# package-lock.json files are also committed on purpose — do not ignore them.
+# The root package-lock.json (npm workspaces resolves all deps into it) is also
+# committed on purpose — do not ignore it.

@@ -18,6 +18,16 @@ version: 1.0.0
 
 This skill is the AC1 trigger — it auto-fires when the user signals intent to start a brand-new project. It resolves matching registry skills, presents them for confirmation, then fetches them into the local project.
 
+## Scope (what this skill does and does NOT do)
+
+Your **only** deliverable is fetching company `SKILL.md` files into `.claude/skills/<name>/` (or `AGENTS.md` for Codex). This is **not** a request to build or scaffold the application:
+
+- Do **NOT** run `create-next-app`, `create-vite`, `nest new`, or any project generator.
+- Do **NOT** write app source, install dependencies, or create config files.
+- Only do the above if the user separately and explicitly asks for it as its own step.
+
+`resolve_skills` is the **start of the fetch flow**, not a lookup to confirm a stack is "recommended". Run every workflow step below in order — do not stop after `resolve_skills`.
+
 ## Trigger phrases (description-matching)
 
 Fire when the user says any of these or similar variants:
@@ -52,6 +62,8 @@ Output: a flat list of keyword strings.
 
 Call the MCP tool `resolve_skills({ keywords })` to get matching registry entries. The tool returns `{ matched: [{ category, name, path, version }] }`.
 
+The resolver is served over MCP (Streamable HTTP) at **`http://localhost:3000/mcp`** for local development (this is the default the registry server binds to via `cd resolver && npm start`). Point your MCP client at that URL. In production, swap the host for the deployed registry URL.
+
 ### Step 3: Fetch Confirmation
 
 Show the resolved skills to the user as a checklist:
@@ -69,15 +81,46 @@ Wait for explicit user confirmation before cloning or copying anything. This is 
 
 If no skills matched, inform the user and offer to create new ones.
 
-### Step 4: Fetch skills (git clone + copy)
+### Step 4: Fetch skills (pull content into the project)
 
-On confirmation:
+On confirmation, pull the matched skills' full content and write each to
+`.claude/skills/<name>/SKILL.md` — no git clone. There are two equivalent ways;
+prefer the MCP tool since you're already connected to the resolver.
 
-1. Clone registry: `git clone --depth 1 https://github.com/company/mtel-skill-registry.git /tmp/registry`
-2. Create `.claude/skills/` if not exists
-3. Copy each matched skill: `cp -r /tmp/registry/{path} .claude/skills/{name}`
-4. Remove temp clone: `rm -rf /tmp/registry`
-5. If a skill directory already exists in `.claude/skills/`, skip it (no overwrite)
+**Option A — MCP tool `get_skills` (preferred).** Call `get_skills({ names })`
+with the matched skill **names** (the `name` field `resolve_skills` returned):
+
+```
+get_skills({ names: ["nextjs", "tailwind", "supabase"] })
+→ { skills: [{ category, name, path, version, raw }], missing: [] }
+```
+
+Write each returned skill's `raw` (the complete SKILL.md incl. frontmatter) to
+`.claude/skills/<name>/SKILL.md`. A skill whose `.claude/skills/<name>/` already
+exists is left untouched (never overwrite). Anything in `missing` isn't in the
+registry — surface it to the user rather than silently skipping.
+
+**This step is mandatory** — you are not done until `get_skills` (or the fetch
+script) has run and the files are written. Do not treat a successful
+`resolve_skills` call as the end of the flow.
+
+**Option B — fetch script (no MCP client / shell-only).** Run the fetch script
+with the registry base URL and the matched skill names:
+
+```bash
+node <registry>/scripts/fetch-skills.js http://localhost:3000 nextjs tailwind supabase
+```
+
+For each name it fetches `GET http://localhost:3000/skills/<name>.json` (which
+carries that skill's full `raw` SKILL.md) and writes it to
+`.claude/skills/<name>/SKILL.md`.
+
+- **Registry base URL**: for local development this is **`http://localhost:3000`**
+  — the same host as the MCP server (`http://localhost:3000/mcp`) without the
+  `/mcp` path. Override with the `MTEL_SKILL_REGISTRY_URL` env var to point at a
+  deployed registry; if unset, default to `http://localhost:3000`. If the server
+  gates `/skills/*`, set `MCP_AUTH_TOKEN` so the script sends the bearer token.
+- A skill whose `.claude/skills/<name>/` already exists is skipped (no overwrite).
 
 ### Step 5: Codex detection
 
