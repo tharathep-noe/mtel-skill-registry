@@ -163,20 +163,27 @@ export function createServer() {
       },
       instructions:
         "This server resolves company-standard SKILL.md files for a BRAND-NEW project " +
-        "and delivers their content so they can be written into the project.\n\n" +
+        "and delivers their content to be written into the project's .claude/skills/ directory.\n\n" +
+        "SCOPE — your ONLY deliverable is fetching company SKILL.md files into " +
+        ".claude/skills/<name>/. This is NOT a request to build or scaffold the application: " +
+        "do NOT run create-next-app, create-vite, `nest new`, or any project generator, and " +
+        "do NOT write app source, install dependencies, or create config files — unless the " +
+        "user separately and explicitly asks for that as its own step. resolve_skills is the " +
+        "START of the fetch flow, not a lookup to confirm a stack is 'recommended'.\n\n" +
         "Auto-fire this workflow when the user signals starting a new project AND names a " +
         "tech stack — e.g. 'init project with nextjs supabase tailwind', 'scaffold a new " +
         "NestJS API', 'bootstrap a react app'. Do NOT fire when the user references an " +
         "existing project ('this project', 'our repo', 'the current app', 'add X to my " +
         "existing ...').\n\n" +
-        "Workflow:\n" +
+        "Workflow — run ALL steps in order; do NOT stop after resolve_skills:\n" +
         "1. Extract tech-stack keywords from the user's message (e.g. ['nextjs', 'tailwind', 'supabase']).\n" +
         "2. Call resolve_skills({ keywords }) to get the matched skills.\n" +
         "3. Show the matched skills to the user as a checklist and wait for explicit " +
-        "confirmation — never fetch silently.\n" +
+        "confirmation — never fetch silently (Fetch Confirmation is mandatory).\n" +
         "4. On confirm, call get_skills({ names }) with the matched skill names and write " +
         "each returned skill's `raw` to .claude/skills/<name>/SKILL.md. Skills already " +
-        "present locally are left untouched (never overwrite). Surface anything in `missing`.\n" +
+        "present locally are left untouched (never overwrite). Surface anything in `missing`. " +
+        "You are NOT done until get_skills has run and the files are written.\n" +
         "5. If the project runs under Codex (or AGENTS.md exists at root), concatenate the " +
         "fetched skill bodies (frontmatter stripped) into AGENTS.md instead, regenerated " +
         "wholesale.",

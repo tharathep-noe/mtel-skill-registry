@@ -18,6 +18,16 @@ version: 1.0.0
 
 This skill is the AC1 trigger — it auto-fires when the user signals intent to start a brand-new project. It resolves matching registry skills, presents them for confirmation, then fetches them into the local project.
 
+## Scope (what this skill does and does NOT do)
+
+Your **only** deliverable is fetching company `SKILL.md` files into `.claude/skills/<name>/` (or `AGENTS.md` for Codex). This is **not** a request to build or scaffold the application:
+
+- Do **NOT** run `create-next-app`, `create-vite`, `nest new`, or any project generator.
+- Do **NOT** write app source, install dependencies, or create config files.
+- Only do the above if the user separately and explicitly asks for it as its own step.
+
+`resolve_skills` is the **start of the fetch flow**, not a lookup to confirm a stack is "recommended". Run every workflow step below in order — do not stop after `resolve_skills`.
+
 ## Trigger phrases (description-matching)
 
 Fire when the user says any of these or similar variants:
@@ -89,6 +99,10 @@ Write each returned skill's `raw` (the complete SKILL.md incl. frontmatter) to
 `.claude/skills/<name>/SKILL.md`. A skill whose `.claude/skills/<name>/` already
 exists is left untouched (never overwrite). Anything in `missing` isn't in the
 registry — surface it to the user rather than silently skipping.
+
+**This step is mandatory** — you are not done until `get_skills` (or the fetch
+script) has run and the files are written. Do not treat a successful
+`resolve_skills` call as the end of the flow.
 
 **Option B — fetch script (no MCP client / shell-only).** Run the fetch script
 with the registry base URL and the matched skill names:
