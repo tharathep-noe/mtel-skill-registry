@@ -14,8 +14,7 @@
  *
  * Output shape:
  *   {
- *     "schemaVersion": 3,
- *     "generatedAt": "<ISO timestamp>",
+ *     "schemaVersion": 4,
  *     "count": <n>,
  *     "skills": [
  *       { category, name, path, match, requires, version,
@@ -23,7 +22,12 @@
  *     ]
  *   }
  * `skills` is ordered by category (frontend → backend → database) then name,
- * so the bundle is stable across rebuilds and diffs cleanly.
+ * so the bundle is stable across rebuilds and diffs cleanly. The output is a
+ * pure function of the SKILL.md sources — no wall-clock timestamp — so
+ * rebuilding without editing any skill produces a byte-identical file. So after
+ * `npm run build` a clean `git diff` confirms the committed artifacts are in
+ * sync, and bundle.json diffs stay meaningful (they only change when a skill
+ * does). Ask git (`git log bundle.json`) when a change landed.
  *
  * Alongside bundle.json this also writes one file per skill to
  * public/r/<name>.json — each holding that skill's catalog entry (the same shape
@@ -52,8 +56,7 @@ skills.sort(
 const catalog = skills;
 
 const bundle = {
-  schemaVersion: 3,
-  generatedAt: new Date().toISOString(),
+  schemaVersion: 4,
   count: catalog.length,
   skills: catalog,
 };

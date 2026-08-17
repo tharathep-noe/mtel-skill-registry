@@ -41,8 +41,7 @@ The build produces two JSON files from the same `SKILL.md` sources — never han
 
 ```json
 {
-  "schemaVersion": 3,
-  "generatedAt": "2026-07-23T00:00:00.000Z",
+  "schemaVersion": 4,
   "count": 8,
   "skills": [
     {
