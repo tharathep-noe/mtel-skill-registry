@@ -1,0 +1,22 @@
+{
+  "category": "backend",
+  "name": "express",
+  "path": "skills/backend/express",
+  "match": [
+    "express",
+    "expressjs",
+    "express.js"
+  ],
+  "requires": [],
+  "version": "1.0.0",
+  "description": "Company conventions for building HTTP APIs with Express.",
+  "useWhen": [
+    "Building a REST/HTTP API or web server on Node.js with Express",
+    "Adding routes, middleware, or error handling to an Express app"
+  ],
+  "doNotUseWhen": [
+    "Using NestJS instead (use the nestjs skill)",
+    "Building a frontend or a non-HTTP service"
+  ],
+  "raw": "---\nname: express\ncategory: backend\nmatch: [express, expressjs, \"express.js\"]\nrequires: []\nversion: 1.0.0\ndescription: Company conventions for building HTTP APIs with Express.\nuseWhen:\n  - Building a REST/HTTP API or web server on Node.js with Express\n  - Adding routes, middleware, or error handling to an Express app\ndoNotUseWhen:\n  - Using NestJS instead (use the nestjs skill)\n  - Building a frontend or a non-HTTP service\n---\n\n# Express Skill\n\nCompany conventions for Express.js backends.\n\n## Project structure\n\n```\nsrc/\n  routes/\n    users.routes.ts\n    auth.routes.ts\n  middleware/\n    auth.middleware.ts\n    error.middleware.ts\n  services/\n    users.service.ts\n  utils/\n    api-response.ts\n  app.ts\n  server.ts\n```\n\n## Patterns\n\n- Router files define routes and wire middleware\n- Controllers are thin — validate with `express-validator`, delegate to services\n- Error handling via centralized error middleware (not try/catch in every route)\n- Use `async-wrap` or a wrapper to catch async errors\n\n## Response format\n\n```ts\n// Consistent envelope\n{ status: \"success\" | \"error\", data?: any, message?: string }\n```"
+}

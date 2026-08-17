@@ -1,0 +1,22 @@
+{
+  "name": "mtel-skill-registry",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Company-wide registry of SKILL.md files plus the MCP resolver and build tooling that serve them",
+  "workspaces": [
+    "resolver",
+    "scripts"
+  ],
+  "scripts": {
+    "start": "npm start --workspace resolver",
+    "inspect": "npm run inspect --workspace resolver",
+    "build": "npm run build --workspace scripts",
+    "test": "node tests/resolver.test.js",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2"
+  }
+}

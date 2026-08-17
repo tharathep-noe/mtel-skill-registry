@@ -18,17 +18,17 @@
   <p class="lede">Connect Claude Code to the central <code>mtel-skill-resolver</code> MCP server.</p>
 
   <h2>1. Add the server</h2>
-  <p>Run this once (drop <code>--scope user</code> to add it only to the current project):</p>
-  <pre><code>claude mcp add --transport http --scope user \
+  <p>Run this from the repo root. <code>--scope project</code> writes to a <code>.mcp.json</code> at the repo root so the server is scoped to <em>this</em> repo (and can be committed for the whole team):</p>
+  <pre><code>claude mcp add --transport http --scope project \
   mtel-skill-resolver https://mcp-registry.internal.company.com/mcp</code></pre>
 
   <p>If the server is protected with <code>MCP_AUTH_TOKEN</code>, pass the bearer header:</p>
-  <pre><code>claude mcp add --transport http --scope user \
+  <pre><code>claude mcp add --transport http --scope project \
   --header "Authorization: Bearer &lt;token&gt;" \
   mtel-skill-resolver https://mcp-registry.internal.company.com/mcp</code></pre>
 
   <h2>2. Or edit config directly</h2>
-  <p>Add to your project's <code>.mcp.json</code> (or the user-level config):</p>
+  <p>Add to the repo root's <code>.mcp.json</code> (create it if missing) — this keeps the server scoped to this repo:</p>
   <pre><code>{
   "mcpServers": {
     "mtel-skill-resolver": {

@@ -1,0 +1,20 @@
+{
+  "category": "database",
+  "name": "postgres",
+  "path": "skills/database/postgres",
+  "match": [
+    "postgres",
+    "postgresql"
+  ],
+  "requires": [],
+  "version": "1.0.0",
+  "description": "Company conventions for PostgreSQL schema design and usage.",
+  "useWhen": [
+    "Designing PostgreSQL schemas or indexes, or writing SQL",
+    "Operating or querying a Postgres database directly"
+  ],
+  "doNotUseWhen": [
+    "Using a different database engine (MySQL, MongoDB, etc.)"
+  ],
+  "raw": "---\nname: postgres\ncategory: database\nmatch: [postgres, postgresql]\nrequires: []\nversion: 1.0.0\ndescription: Company conventions for PostgreSQL schema design and usage.\nuseWhen:\n  - Designing PostgreSQL schemas or indexes, or writing SQL\n  - Operating or querying a Postgres database directly\ndoNotUseWhen:\n  - Using a different database engine (MySQL, MongoDB, etc.)\n---\n\n# PostgreSQL Skill\n\nCompany conventions for PostgreSQL databases.\n\n## Connections\n\n- Connection pooling via PgBouncer in production\n- Connection string from environment: `DATABASE_URL`\n- SSL required for production connections\n\n## Naming\n\n- Tables: snake_case, plural (`users`, `blog_posts`)\n- Columns: snake_case (`created_at`, `user_id`)\n- Primary keys: `id BIGSERIAL PRIMARY KEY` or UUID\n- Foreign keys: `{referenced_table}_id`\n\n## Migrations\n\n- Use Prisma Migrate or direct SQL via `supabase migration`\n- One migration per schema change, never squash\n- Always add `down` migration if writing raw SQL\n\n## Performance\n\n- Add indexes for columns used in WHERE, JOIN, ORDER BY\n- Use `EXPLAIN ANALYZE` to verify query plans\n- Avoid N+1 by using JOINs or batch loading"
+}

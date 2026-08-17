@@ -1,54 +1,81 @@
 #!/usr/bin/env node
 /**
  * build-bundle.js
- * Builds bundle.json — a lightweight *selection catalog* of every skill:
- * metadata plus a short `description` and `useWhen` / `doNotUseWhen` guidance,
- * but NOT the full markdown body. The point is for a consumer (often an LLM) to
- * decide *which* skills to pull without spending tokens on every skill's body;
- * the body is fetched on demand afterwards (git clone / fetch-skills.sh).
+ * Builds bundle.json — the self-contained skill bundle: every skill's metadata
+ * plus its selection guidance (`description`, `useWhen`, `doNotUseWhen`) AND its
+ * full `raw` SKILL.md (frontmatter + body). This is both the selection catalog
+ * *and* the delivery payload: a consumer resolves which skills it wants, fetches
+ * this one file from the server (`GET /bundle.json`), and writes each `raw`
+ * straight into `.claude/skills/<name>/SKILL.md` — no git clone of the registry
+ * required. `raw` is the complete file so the pulled skill keeps its frontmatter
+ * (which is what makes it discoverable as a Claude Code skill).
  *
  * Run from repo root: node scripts/build-bundle.js
  *
  * Output shape:
  *   {
- *     "schemaVersion": 2,
- *     "generatedAt": "<ISO timestamp>",
+ *     "schemaVersion": 4,
  *     "count": <n>,
  *     "skills": [
  *       { category, name, path, match, requires, version,
- *         description, useWhen: [...], doNotUseWhen: [...] }, ...
+ *         description, useWhen: [...], doNotUseWhen: [...], raw }, ...
  *     ]
  *   }
  * `skills` is ordered by category (frontend → backend → database) then name,
- * so the catalog is stable across rebuilds and diffs cleanly.
+ * so the bundle is stable across rebuilds and diffs cleanly. The output is a
+ * pure function of the SKILL.md sources — no wall-clock timestamp — so
+ * rebuilding without editing any skill produces a byte-identical file. So after
+ * `npm run build` a clean `git diff` confirms the committed artifacts are in
+ * sync, and bundle.json diffs stay meaningful (they only change when a skill
+ * does). Ask git (`git log bundle.json`) when a change landed.
+ *
+ * Alongside bundle.json this also writes one file per skill to
+ * public/r/<name>.json — each holding that skill's catalog entry (the same shape
+ * the HTTP server serves at GET /skills/<name>.json). The public/r/ directory is
+ * cleared and rebuilt each run so it never carries stale/renamed skills.
  */
 
-const fs = require("fs")
-const path = require("path")
-const { collectSkills, CATEGORIES, REPO_ROOT } = require("./lib/registry")
+const fs = require("fs");
+const path = require("path");
+const { collectSkills, CATEGORIES, REPO_ROOT } = require("./lib/registry");
 
-const { skills, warnings } = collectSkills()
+const { skills, warnings } = collectSkills();
 
 const categoryRank = (c) => {
-  const i = CATEGORIES.indexOf(c)
-  return i === -1 ? CATEGORIES.length : i
-}
+  const i = CATEGORIES.indexOf(c);
+  return i === -1 ? CATEGORIES.length : i;
+};
 skills.sort(
-  (a, b) => categoryRank(a.category) - categoryRank(b.category) || a.name.localeCompare(b.name)
-)
+  (a, b) =>
+    categoryRank(a.category) - categoryRank(b.category) ||
+    a.name.localeCompare(b.name),
+);
 
-// Drop the body — the catalog is for *choosing* skills, not delivering them.
-const catalog = skills.map(({ body, ...rest }) => rest)
+// Emit metadata + selection guidance + the full `raw` SKILL.md. The bundle
+// carries `raw` so a fetched skill keeps its frontmatter and stays a valid skill.
+const catalog = skills;
 
 const bundle = {
-  schemaVersion: 2,
-  generatedAt: new Date().toISOString(),
+  schemaVersion: 4,
   count: catalog.length,
   skills: catalog,
+};
+
+for (const w of warnings) console.warn(`⚠  ${w}`);
+
+const outputPath = path.join(REPO_ROOT, "bundle.json");
+fs.writeFileSync(outputPath, JSON.stringify(bundle, null, 2) + "\n");
+console.log(`Generated bundle.json with ${skills.length} skills`);
+
+// Per-skill files: public/r/<name>.json, each the skill's catalog entry. Rebuild
+// the directory from scratch so renamed/removed skills don't leave stale files.
+const perSkillDir = path.join(REPO_ROOT, "public/r");
+fs.rmSync(perSkillDir, { recursive: true, force: true });
+fs.mkdirSync(perSkillDir, { recursive: true });
+for (const skill of catalog) {
+  fs.writeFileSync(
+    path.join(perSkillDir, `${skill.name}.json`),
+    JSON.stringify(skill, null, 2) + "\n",
+  );
 }
-
-for (const w of warnings) console.warn(`⚠  ${w}`)
-
-const outputPath = path.join(REPO_ROOT, "bundle.json")
-fs.writeFileSync(outputPath, JSON.stringify(bundle, null, 2) + "\n")
-console.log(`Generated bundle.json with ${skills.length} skills`)
+console.log(`Generated public/r/ with ${catalog.length} per-skill files`);

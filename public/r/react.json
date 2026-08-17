@@ -1,0 +1,22 @@
+{
+  "category": "frontend",
+  "name": "react",
+  "path": "skills/frontend/react",
+  "match": [
+    "react",
+    "reactjs",
+    "react.js"
+  ],
+  "requires": [],
+  "version": "1.0.0",
+  "description": "Company conventions for React component development.",
+  "useWhen": [
+    "Building React components, hooks, or client-side UI",
+    "Any project using React, including Next.js frontends"
+  ],
+  "doNotUseWhen": [
+    "Using a non-React frontend framework (Vue, Angular, Svelte)",
+    "Backend-only work"
+  ],
+  "raw": "---\nname: react\ncategory: frontend\nmatch: [react, reactjs, \"react.js\"]\nrequires: []\nversion: 1.0.0\ndescription: Company conventions for React component development.\nuseWhen:\n  - Building React components, hooks, or client-side UI\n  - Any project using React, including Next.js frontends\ndoNotUseWhen:\n  - Using a non-React frontend framework (Vue, Angular, Svelte)\n  - Backend-only work\n---\n\n# React Skill\n\nCompany conventions for React.\n\n## Component patterns\n\n- Default to function components with hooks\n- Lift state to the smallest common ancestor\n- Extract logic into custom hooks when it uses React hooks (`useState`, `useEffect`, etc.)\n- Extract pure functions into `lib/` utilities (not hooks)\n\n## Props\n\n```tsx\n// Good — explicit interface, destructure in params\ninterface ButtonProps {\n  variant: \"primary\" | \"secondary\"\n  children: React.ReactNode\n}\n\n// Avoid — inline types that are reused elsewhere\n```\n\n## State management\n\n- React state + context for UI state\n- tRPC react-query for server state\n- Avoid Redux/Zustand unless the project already uses them"
+}

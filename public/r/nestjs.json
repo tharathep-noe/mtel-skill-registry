@@ -1,0 +1,22 @@
+{
+  "category": "backend",
+  "name": "nestjs",
+  "path": "skills/backend/nestjs",
+  "match": [
+    "nestjs",
+    "nest.js",
+    "nest"
+  ],
+  "requires": [],
+  "version": "1.0.0",
+  "description": "Company conventions for structuring NestJS applications.",
+  "useWhen": [
+    "Building a backend with the NestJS framework",
+    "Working with Nest modules, controllers, providers, or dependency injection"
+  ],
+  "doNotUseWhen": [
+    "Using plain Express instead (use the express skill)",
+    "Frontend-only work"
+  ],
+  "raw": "---\nname: nestjs\ncategory: backend\nmatch: [nestjs, \"nest.js\", nest]\nrequires: []\nversion: 1.0.0\ndescription: Company conventions for structuring NestJS applications.\nuseWhen:\n  - Building a backend with the NestJS framework\n  - Working with Nest modules, controllers, providers, or dependency injection\ndoNotUseWhen:\n  - Using plain Express instead (use the express skill)\n  - Frontend-only work\n---\n\n# NestJS Skill\n\nCompany conventions for NestJS backends.\n\n## Module structure\n\n```\nsrc/\n  modules/\n    users/\n      users.module.ts\n      users.service.ts\n      users.controller.ts\n      dto/\n      entities/\n  common/\n    guards/\n    interceptors/\n    pipes/\n    filters/\n  config/\n    env.ts\n    database.config.ts\n```\n\n## Patterns\n\n- Feature modules with controllers, services, and DTOs\n- Use `@Injectable()` services for business logic\n- Keep controllers thin — validation in DTOs, logic in services\n- Use `class-validator` + `class-transformer` for DTO validation\n\n## Database\n\n- Prisma as the ORM\n- NestJS-prisma module for DI\n- Repository pattern via Prisma service wrapper in each module\n\n## Testing\n\n- Unit tests with `jest` + in-memory mocks\n- E2E tests with `supertest` + test database"
+}

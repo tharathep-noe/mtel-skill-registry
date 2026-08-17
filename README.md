@@ -18,7 +18,8 @@ User: "create a new Next.js project with Tailwind and Supabase"
   │
   ├─ 3. Show resolved skills to user → Fetch Confirmation
   │
-  └─ 4. On confirm: git clone → copy matched skills → clean up
+  └─ 4. On confirm: get_skills({ names }) → raw SKILL.md content → write matched skills
+        │  (or GET /skills/<name>.json per skill via fetch-skills.js)
         ├─ Claude: .claude/skills/<name>/SKILL.md
         └─ Codex:  concat into AGENTS.md at root
 ```
@@ -34,14 +35,13 @@ The build produces two JSON files from the same `SKILL.md` sources — never han
 | File | Contents | Consumed by |
 |---|---|---|
 | `index.json` | Metadata only (`match`, `requires`, `version`, `path`) | The MCP resolver, for keyword matching |
-| `bundle.json` | Metadata **+ `description` + `useWhen`/`doNotUseWhen`** (no bodies) | Clients, as a lightweight selection catalog |
+| `bundle.json` | Metadata **+ `description` + `useWhen`/`doNotUseWhen` + `raw` (full SKILL.md)** | Clients, as a selection catalog **and** delivery payload |
 
-`bundle.json` is a **selection catalog**: a consumer (often an LLM) fetches this one small file to decide *which* skills to pull — using each skill's short `description` and `useWhen`/`doNotUseWhen` guidance — **without spending tokens on every skill's full body**. The body is fetched on demand afterwards (via the fetch flow / `git clone`). Shape:
+`bundle.json` is the **self-contained bundle**: a consumer (often an LLM) fetches this one file, decides *which* skills to pull from each skill's `description` and `useWhen`/`doNotUseWhen` guidance, then writes each matched skill's `raw` (the complete SKILL.md, frontmatter and all) straight into `.claude/skills/<name>/SKILL.md` — no git clone of the registry. Shape:
 
 ```json
 {
-  "schemaVersion": 2,
-  "generatedAt": "2026-07-23T00:00:00.000Z",
+  "schemaVersion": 4,
   "count": 8,
   "skills": [
     {
@@ -59,7 +59,8 @@ The build produces two JSON files from the same `SKILL.md` sources — never han
       "doNotUseWhen": [
         "Building a plain React SPA with no Next.js (use the react skill)",
         "Backend-only services with no Next.js frontend"
-      ]
+      ],
+      "raw": "---\nname: nextjs\n...\n---\n\n# nextjs\n\n...full SKILL.md body..."
     }
   ]
 }
@@ -95,15 +96,14 @@ mtel-skill-registry/
 │   ├── package.json             # Build-tooling deps (gray-matter)
 │   ├── lib/registry.js          # Shared scan + frontmatter parse + validation
 │   ├── generate-index.js        # Regenerates index.json (metadata) from frontmatter
-│   ├── build-bundle.js          # Regenerates bundle.json (selection catalog, no bodies)
-│   ├── fetch-skills.sh          # Clones registry + copies matched skills
+│   ├── build-bundle.js          # Regenerates bundle.json (catalog + full SKILL.md payload)
+│   ├── fetch-skills.js          # Downloads matched skills from the server (/skills/<name>.json)
 │   └── generate-agents-md.js    # Concat skills into AGENTS.md (Codex)
 ├── tests/
 │   ├── trigger-corpus.json      # Should-fire / should-not-fire prompts
 │   └── resolver.test.js         # Resolver unit tests
 └── resolver/
     ├── server.js                # Shared resolve_skills tool + matching logic
-    ├── index.js                 # stdio entry point
     ├── http.js                  # Streamable HTTP entry point (serves docs/)
     └── package.json
 ```
@@ -133,10 +133,10 @@ doNotUseWhen:
 `description` + `useWhen`/`doNotUseWhen` are what land in `bundle.json` (the selection catalog), so write them for a reader deciding whether to pull the skill — concise and specific.
 
 3. Write the skill body in markdown — company conventions, architecture patterns, code examples
-4. Regenerate `index.json` and `bundle.json` (first time: `cd scripts && npm install`):
+4. Regenerate `index.json` and `bundle.json` (first time: `npm install` at the repo root):
 
 ```bash
-cd scripts && npm run build     # runs generate-index.js + build-bundle.js
+npm run build     # runs generate-index.js + build-bundle.js
 ```
 
 5. Open a PR with your new skill directory and the updated `index.json` + `bundle.json`
@@ -159,12 +159,12 @@ cd scripts && npm run build     # runs generate-index.js + build-bundle.js
 - Use lowercase
 - Include common aliases (e.g., `nextjs`, `next.js`, `next`)
 - Keep the list focused — quality over quantity
-- Run `node tests/resolver.test.js` to verify matching works as expected
+- Run `npm test` to verify matching works as expected
 
 ## PR review process
 
 1. Reviewer verifies frontmatter is complete and valid
-2. Reviewer runs `cd scripts && npm run build` to confirm `index.json` and `bundle.json` regenerate cleanly (and match what's committed)
+2. Reviewer runs `npm run build` to confirm `index.json` and `bundle.json` regenerate cleanly (and match what's committed)
 3. Reviewer checks:
    - Skill content is factual, not aspirational
    - Conventions match actual company practice
@@ -175,45 +175,34 @@ cd scripts && npm run build     # runs generate-index.js + build-bundle.js
 
 ### Install dependencies
 
+One install at the repo root covers both workspaces (`resolver/`, `scripts/`) plus Prettier:
+
 ```bash
-cd resolver && npm install     # MCP resolver (runtime)
-cd scripts  && npm install     # build tooling: gray-matter (generate-index / build-bundle)
+npm install
 ```
 
 ### Run tests
 
 ```bash
-node tests/resolver.test.js
+npm test
 ```
 
-### Start MCP resolver (stdio)
+### Format code
 
-For local, per-machine use — each client (Claude Code, Codex) spawns this process itself:
+Prettier config lives in `.prettierrc.json` (semicolons, double quotes, 80-col):
 
 ```bash
-cd resolver && node index.js        # or: npm start
-```
-
-Point a client at it via MCP config (each machine must have this repo cloned):
-
-```json
-{
-  "mcpServers": {
-    "mtel-skill-resolver": {
-      "command": "node",
-      "args": ["/absolute/path/to/mtel-skill-registry/resolver/index.js"]
-    }
-  }
-}
+npm run format        # write
+npm run format:check  # verify only (CI / pre-commit)
 ```
 
 ### Start MCP resolver (Streamable HTTP)
 
-For a single central server that many projects connect to over the network — no local clone required on the client side:
+The resolver ships a single transport — Streamable HTTP. Run one central server that many projects connect to over the network; no local clone is required on the client side:
 
 ```bash
-cd resolver && npm run start:http                       # listens on :3000/mcp
-PORT=8080 MCP_AUTH_TOKEN=<secret> npm run start:http     # custom port + bearer auth
+npm start                                        # listens on :3000/mcp
+PORT=8080 MCP_AUTH_TOKEN=<secret> npm start      # custom port + bearer auth
 ```
 
 Environment:
@@ -229,12 +218,13 @@ Routes:
 
 | Route | Purpose |
 |---|---|
-| `POST /mcp` | MCP Streamable HTTP endpoint (`resolve_skills`) |
-| `GET /bundle.json` | Static skill catalog (metadata + full bodies) — fetch once, no clone needed. 404s until `bundle.json` is built. |
+| `POST /mcp` | MCP Streamable HTTP endpoint (tools: `resolve_skills`, `get_skills`) |
+| `GET /bundle.json` | Whole skill catalog (metadata + full bodies) — fetch once to browse. 404s until `bundle.json` is built. |
+| `GET /skills/<name>.json` | One skill by name (metadata + full `raw` SKILL.md) — the fetch flow pulls each matched skill this way. 404 for unknown names. |
 | `GET /health` | Liveness probe |
 | `GET /` + `/claude-setup`, `/codex-setup`, `/opencode-setup` | Landing page + per-client setup guides |
 
-Clients connect to the `/mcp` endpoint:
+Clients connect to the `/mcp` endpoint. Register the server **scoped to the consuming repo** (not globally/user-wide) so each project opts in explicitly and the config can be committed for the team:
 
 ```json
 {
@@ -246,9 +236,17 @@ Clients connect to the `/mcp` endpoint:
 }
 ```
 
+How to scope it per client (full walkthroughs at `/claude-setup`, `/codex-setup`, `/opencode-setup`):
+
+| Client | Repo-scoped install |
+|---|---|
+| **Claude Code** | `claude mcp add --transport http --scope project mtel-skill-resolver <url>` → writes `.mcp.json` at the repo root (commit it). |
+| **OpenCode** | Hand-edit `opencode.json` at the repo root. `opencode mcp add` exists but always writes the **global** `~/.config/opencode/opencode.json` — no project-scope flag — so don't use it here. |
+| **Codex** | Put the server in a repo-local `.codex/config.toml` and launch with `CODEX_HOME="$PWD/.codex" codex`. `codex mcp add` (newer versions) also writes to `$CODEX_HOME`, so the same `CODEX_HOME` trick scopes it. |
+
 ### Testing the HTTP resolver with Postman
 
-Import `resolver/postman/mtel-skill-resolver.postman_collection.json` — it ships a Health check, `tools/list`, and `tools/call resolve_skills` request. Start the server (`cd resolver && PORT=3939 npm run start:http`) and set the `baseUrl` collection variable to match.
+Import `resolver/postman/mtel-skill-resolver.postman_collection.json` — it ships a Health check, `tools/list`, and `tools/call resolve_skills` request. Start the server (`PORT=3939 npm start`) and set the `baseUrl` collection variable to match.
 
 Two things to know when hand-crafting `/mcp` requests:
 

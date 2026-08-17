@@ -1,0 +1,24 @@
+{
+  "category": "frontend",
+  "name": "nextjs",
+  "path": "skills/frontend/nextjs",
+  "match": [
+    "nextjs",
+    "next.js",
+    "next"
+  ],
+  "requires": [
+    "react"
+  ],
+  "version": "1.0.0",
+  "description": "Company conventions for Next.js (App Router) applications.",
+  "useWhen": [
+    "Building or extending a Next.js application",
+    "Working with the App Router, server components, routing, or data fetching"
+  ],
+  "doNotUseWhen": [
+    "Building a plain React SPA with no Next.js (use the react skill)",
+    "Backend-only services with no Next.js frontend"
+  ],
+  "raw": "---\nname: nextjs\ncategory: frontend\nmatch: [nextjs, \"next.js\", next]\nrequires: [react]\nversion: 1.0.0\ndescription: Company conventions for Next.js (App Router) applications.\nuseWhen:\n  - Building or extending a Next.js application\n  - Working with the App Router, server components, routing, or data fetching\ndoNotUseWhen:\n  - Building a plain React SPA with no Next.js (use the react skill)\n  - Backend-only services with no Next.js frontend\n---\n\n# Next.js Skill\n\nCompany conventions for Next.js projects.\n\n## Project structure\n\n```\napp/\n  (marketing)/\n    page.tsx          # Public landing routes\n  (dashboard)/\n    layout.tsx        # Authenticated layout\n    page.tsx          # Dashboard home\n  api/                # Route handlers (App Router)\n    trpc/\n      [trpc]/\n        route.ts\nlib/                  # Shared utilities\n  db.ts\n  auth.ts\ncomponents/           # Shared UI components\n  ui/                 # Primitive components (button, input, etc.)\nproviders/            # React context providers\n```\n\n## Routing\n\n- Use App Router exclusively (no `pages/`)\n- Route groups `(group)` for layout segmentation, not for URL structure\n- Server Components by default; add `'use client'` only when needed\n\n## Data fetching\n\n- Prefer server-side data fetching in Server Components\n- Use `fetch()` with Next.js caching: `cache: 'force-cache'` for static, `cache: 'no-store'` for dynamic\n- Use tRPC for authenticated client-server interactions\n\n## Styling\n\n- Tailwind CSS for all styling\n- Use `cn()` utility from `clsx` + `tailwind-merge` for conditional classes"
+}
