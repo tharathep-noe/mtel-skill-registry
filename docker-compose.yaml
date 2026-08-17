@@ -1,0 +1,30 @@
+services:
+  resolver:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mtel-skill-registry:latest
+    restart: unless-stopped
+    environment:
+      # http.js reads PORT (default 3000) and MCP_AUTH_TOKEN (optional).
+      # When MCP_AUTH_TOKEN is set it gates /mcp, /bundle.json and /skills/*.
+      PORT: 3000
+      NODE_ENV: production
+      MCP_AUTH_TOKEN: ${MCP_AUTH_TOKEN:-}
+    ports:
+      # Bound to loopback: the Cloudflare tunnel runs on the host and reaches
+      # this via http://localhost:3450. Nothing is exposed on the host's
+      # public interfaces.
+      - "127.0.0.1:3450:3000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
