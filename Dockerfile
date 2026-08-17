@@ -29,6 +29,8 @@ RUN npm ci --omit=dev && npm cache clean --force
 
 # Only the artifacts the resolver reads at runtime.
 COPY --from=build /app/resolver ./resolver
+# http.js reads docs/_style.html + the *-setup.html pages at boot.
+COPY --from=build /app/docs ./docs
 COPY --from=build /app/public ./public
 COPY --from=build /app/skills ./skills
 COPY --from=build /app/index.json ./index.json
