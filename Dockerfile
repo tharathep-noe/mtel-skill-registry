@@ -24,7 +24,10 @@ COPY skills ./skills
 COPY index.json ./index.json
 COPY bundle.json ./bundle.json
 
-EXPOSE 3000
+# Documentation only — compose publishes the port explicitly. Kept in sync with
+# the resolver's default so it does not go stale when CONTAINER_PORT is changed.
+ARG PORT=3000
+EXPOSE ${PORT}
 USER node
 
 CMD ["node", "resolver/http.js"]

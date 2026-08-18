@@ -5,12 +5,9 @@ services:
       dockerfile: Dockerfile
     image: mtel-skill-registry:latest
     restart: unless-stopped
-    env_file:
-      # Optional: compose skips this file silently when it does not exist.
-      # Copy .env.example to .env to override any of the values below.
-      - path: .env
-        required: false
     environment:
+      # Values come from .env in this directory, which compose loads on its own
+      # for interpolation (no env_file entry needed).
       # http.js reads PORT (default 3000) and MCP_AUTH_TOKEN (optional).
       # When MCP_AUTH_TOKEN is set it gates /mcp, /bundle.json and /skills/*.
       PORT: ${CONTAINER_PORT:-3000}
@@ -18,9 +15,9 @@ services:
       MCP_AUTH_TOKEN: ${MCP_AUTH_TOKEN:-}
     ports:
       # Defaults to loopback: the Cloudflare tunnel runs on the host and reaches
-      # this via http://localhost:3450. Nothing is exposed on the host's
+      # this via http://localhost:3487. Nothing is exposed on the host's
       # public interfaces unless HOST_BIND is widened in .env.
-      - "${HOST_BIND:-127.0.0.1}:${HOST_PORT:-3450}:${CONTAINER_PORT:-3000}"
+      - "${HOST_BIND:-127.0.0.1}:${HOST_PORT:-3487}:${CONTAINER_PORT:-3000}"
     healthcheck:
       test:
         [
