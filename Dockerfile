@@ -15,14 +15,14 @@ COPY resolver/package.json resolver/
 COPY scripts/package.json scripts/
 RUN npm ci --omit=dev && npm cache clean --force
 
-# Only what the resolver reads at runtime. docs/ is required: http.js reads
-# docs/_style.html and the *-setup.html pages at module load, so omitting it
-# crashes the server on boot with ENOENT.
-COPY resolver/ resolver/
-COPY public/ public/
-COPY skills/ skills/
-COPY docs/ docs/
-COPY index.json bundle.json ./
+# Only the artifacts the resolver reads at runtime.
+COPY --from=build /app/resolver ./resolver
+# http.js reads docs/_style.html + the *-setup.html pages at boot.
+COPY --from=build /app/docs ./docs
+COPY --from=build /app/public ./public
+COPY --from=build /app/skills ./skills
+COPY --from=build /app/index.json ./index.json
+COPY --from=build /app/bundle.json ./bundle.json
 
 EXPOSE 3000
 USER node
